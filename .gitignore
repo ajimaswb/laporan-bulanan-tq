@@ -1,0 +1,10 @@
+__pycache__/
+output/
+preview/
+.claude/
+.DS_Store
+# data lokal (versi online menyimpan ini di Supabase)
+ttd/
+sdo.json
+master_copart.json
+template/

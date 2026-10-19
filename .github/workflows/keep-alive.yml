@@ -1,0 +1,17 @@
+# Project Supabase gratis berhenti sendiri jika 7 hari tidak dipakai.
+# Ping ringan tiap hari agar laporan bulanan selalu bisa dibuka.
+name: keep-alive
+on:
+  schedule:
+    - cron: "0 1 * * *"   # setiap hari 08:00 WIB
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        run: |
+          curl -fsS -X POST \
+            -H "apikey: sb_publishable_P22pMb9tLyk3d3KcuOORcA_dL1V_IgD" \
+            -H "Content-Type: application/json" -d '{}' \
+            https://awarzmlkvqhhiuapijkk.supabase.co/rest/v1/rpc/ada_admin

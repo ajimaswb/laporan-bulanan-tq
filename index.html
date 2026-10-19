@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Laporan Bulanan</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --card: #ffffff; --text: #1d2330; --muted: #6b7280; --line: #e3e6eb;
+    --accent: #1f4fd8; --accent-ink: #ffffff; --warn-bg: #fff6cc; --warn-line: #f0d264;
+    --edit: #e8efff; --danger: #c0392b; --ok: #1e8e4f; --ok-bg: #e7f6ee;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161b; --card: #1d2027; --text: #e7e9ee; --muted: #9aa1ad; --line: #2e323b;
+      --accent: #6f93ff; --accent-ink: #0d1020; --warn-bg: #3a3214; --warn-line: #7a6522;
+      --edit: #22304f; --danger: #ff7b6b; --ok: #5fd394; --ok-bg: #173325;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px;
+           padding: 16px 24px; background: var(--card); border-bottom: 1px solid var(--line);
+           position: sticky; top: 0; z-index: 5; }
+  header h1 { font-size: 18px; margin: 0; }
+  header .sub { color: var(--muted); font-size: 13px; }
+  main { max-width: 1180px; margin: 0 auto; padding: 20px 24px 120px; display: grid; gap: 18px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+  h2 { font-size: 15px; margin: 0 0 12px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .muted { color: var(--muted); }
+  select, input, textarea, button { font: inherit; color: inherit; }
+  select, input, textarea { background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+                            padding: 7px 10px; }
+  textarea { width: 100%; resize: vertical; min-height: 70px; }
+  button { border: 1px solid var(--line); background: var(--card); border-radius: 8px; padding: 8px 14px;
+           cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  button:disabled { opacity: .5; cursor: progress; }
+  .periode-label { font-size: 16px; font-weight: 600; margin-left: 6px; }
+
+  .stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+  .stat { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .stat b { display: block; font-size: 22px; }
+  .stat span { color: var(--muted); font-size: 12px; }
+
+  .warn { background: var(--warn-bg); border: 1px solid var(--warn-line); border-radius: 10px;
+          padding: 10px 14px; margin-top: 12px; }
+  .warn ul { margin: 4px 0 0; padding-left: 18px; }
+
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 860px; }
+  th, td { border-bottom: 1px solid var(--line); padding: 6px 6px; text-align: left; vertical-align: middle; }
+  th { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+  td input { width: 100%; padding: 5px 8px; }
+  td.no { width: 36px; color: var(--muted); }
+  td.hari { width: 92px; }
+  td.hari.senin { font-weight: 700; }
+  td.tgl { width: 92px; white-space: nowrap; }
+  td.sumber { width: 190px; color: var(--muted); font-size: 12px; font-family: ui-monospace, Menlo, monospace; }
+  td.copart { width: 90px; }
+  td.ket { width: 140px; }
+  td.aksi { width: 34px; text-align: center; }
+  tr.ragu td { background: var(--warn-bg); }
+  input.diubah { background: var(--edit); border-color: var(--accent); }
+  .reset { border: none; background: none; padding: 2px 6px; color: var(--accent); font-size: 16px; }
+
+  .mandays { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+  .md { border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 8px; }
+  .md .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .md label { font-size: 12px; color: var(--muted); display: grid; gap: 3px; }
+  .md label input, .md label select { width: 100%; }
+  .md .head { display: flex; justify-content: space-between; align-items: center; }
+  .md .hapus { color: var(--danger); border: none; background: none; padding: 2px 4px; }
+
+  footer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--line);
+           padding: 12px 24px; z-index: 5; }
+  footer .inner { max-width: 1180px; margin: 0 auto; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  footer input { flex: 1 1 320px; min-width: 200px; }
+  .hasil { max-width: 1180px; margin: 8px auto 0; font-size: 13px; }
+  .hasil.ok { color: var(--ok); }
+  .hasil.err { color: var(--danger); }
+  .hidden { display: none !important; }
+  .overlay { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.25); z-index: 20; }
+  .overlay div { background: var(--card); padding: 18px 24px; border-radius: 12px; border: 1px solid var(--line); }
+
+  .tabs { display: flex; gap: 4px; margin-left: 24px; }
+  .tab { border: none; background: none; padding: 8px 12px; border-radius: 8px; color: var(--muted); font-weight: 600; }
+  .tab.aktif { background: var(--bg); color: var(--text); }
+  .badge { display: inline-block; min-width: 20px; padding: 0 6px; margin-left: 4px; border-radius: 10px;
+           background: var(--danger); color: #fff; font-size: 12px; line-height: 20px; text-align: center; }
+  .reminder { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+              background: var(--warn-bg); border: 1px solid var(--warn-line); border-radius: 12px; padding: 12px 16px; }
+  table.master { min-width: 980px; }
+  table.master td.kode { width: 100px; }
+  table.master td.lok { width: 150px; }
+  table.master td.std { width: 80px; }
+  table.master td.kat { width: 110px; }
+  table.master td.num { width: 60px; color: var(--muted); }
+  tr.kurang td { background: var(--warn-bg); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { border: 1px solid var(--line); border-radius: 14px; padding: 2px 4px 2px 10px; font-size: 12px; }
+  .chip button { border: none; background: none; padding: 0 6px; color: var(--muted); }
+  .kecil { font-size: 12px; }
+  .login-wrap { position: fixed; inset: 0; z-index: 30; background: var(--bg); display: grid; place-items: center; padding: 16px; }
+  .login-card { width: min(380px, 100%); background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+                padding: 24px; display: grid; gap: 12px; }
+  .login-card h2 { margin: 0; font-size: 18px; }
+  .login-card label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+  .login-card input { width: 100%; }
+  .login-err { color: var(--danger); font-size: 13px; min-height: 18px; }
+  .akun { display: flex; gap: 8px; align-items: center; }
+  .modal { position: fixed; inset: 0; z-index: 25; background: rgba(0,0,0,.35); display: grid; place-items: center; padding: 16px; }
+  .modal form { width: min(360px, 100%); background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+                padding: 20px; display: grid; gap: 10px; }
+  .modal input { width: 100%; }
+  body.memuat header, body.memuat main, body.memuat footer { visibility: hidden; }
+  body.bukan-admin .khusus-admin { display: none !important; }
+  body.bukan-admin #pageMaster input, body.bukan-admin #pageMaster select {
+    pointer-events: none; background: transparent; border-color: transparent; }
+  body.bukan-admin #abaikan button { display: none; }
+  .sdo-pilih { margin-left: 20px; font-weight: 600; display: flex; gap: 8px; align-items: center; }
+  .sdo-pilih select { font-weight: 600; min-width: 200px; }
+  .ttd-box { width: 140px; height: 64px; border: 1px dashed var(--line); border-radius: 8px; display: grid;
+             place-items: center; background: #fff; overflow: hidden; }
+  .ttd-box img { width: 100%; height: 100%; object-fit: contain; }
+  .ttd-box span { color: #999; font-size: 12px; }
+  table.sdo td { vertical-align: middle; }
+  table.sdo { min-width: 760px; }
+
+  @media (max-width: 720px) {
+    .tabs { margin-left: 0; }
+    header, main, footer { padding-left: 16px; padding-right: 16px; }
+    .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .md .grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body class="memuat">
+<header>
+  <div class="row">
+    <div>
+      <h1>Laporan Bulanan</h1>
+      <div class="sub">FM-SDD-008</div>
+    </div>
+    <label class="sdo-pilih">SDO <select id="pilihSdo"></select></label>
+    <nav class="tabs">
+      <button class="tab aktif" data-hal="laporan">Laporan</button>
+      <button class="tab" data-hal="master">Master Copart<span class="badge hidden" id="badge"></span></button>
+      <button class="tab" data-hal="sdo">Data SDO<span class="badge hidden" id="badgeSdo"></span></button>
+    </nav>
+  </div>
+  <div class="row">
+    <span class="muted" id="diunduh"></span>
+    <button id="btnMuatUlang" title="Unduh ulang spreadsheet kehadiran dari Google Sheets">⟳ Muat ulang data</button>
+    <span class="akun hidden" id="akun">
+      <span class="muted" id="akunNama"></span>
+      <button id="btnGantiPw">Ganti password</button>
+      <button id="btnKeluar">Keluar</button>
+    </span>
+  </div>
+</header>
+
+<main id="pageLaporan">
+  <div class="reminder hidden" id="reminder">
+    <span id="reminderText"></span>
+    <button data-ke="master">Buka Master Copart</button>
+  </div>
+  <div class="reminder hidden" id="reminderSdo">
+    <span id="reminderSdoText"></span>
+    <button data-ke="sdo">Buka Data SDO</button>
+  </div>
+
+  <section>
+    <h2>Periode</h2>
+    <div class="row">
+      <select id="bulan"></select>
+      <input id="tahun" type="number" min="2020" max="2100" style="width:96px">
+      <button id="btnAmbil">Ambil data</button>
+      <span class="periode-label" id="labelPeriode"></span>
+    </div>
+    <p class="muted" style="margin:8px 0 0">Cutoff tiap tanggal 25: periode Oktober = 26 September s/d 25 Oktober.</p>
+  </section>
+
+  <section>
+    <h2>Ringkasan mandays</h2>
+    <div class="stats">
+      <div class="stat"><b id="sHari">–</b><span>Hari kerja</span></div>
+      <div class="stat"><b id="sCopart">–</b><span>Di copart</span></div>
+      <div class="stat"><b id="sLain">–</b><span>Copart lain / non-mandays</span></div>
+      <div class="stat"><b id="sKantor">–</b><span>Di kantor</span></div>
+      <div class="stat"><b id="sAbsen">–</b><span>Cuti / libur</span></div>
+    </div>
+    <div class="warn hidden" id="warn"><b>Perlu dicek</b><ul id="warnList"></ul></div>
+  </section>
+
+  <section>
+    <h2>Kegiatan harian <span class="muted" style="font-weight:400">— klik sel untuk mengubah; sel biru = diubah manual, ↺ = kembalikan ke otomatis</span></h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>No</th><th>Hari</th><th>Tanggal</th><th>Di spreadsheet</th>
+          <th>Co-Part</th><th>Kegiatan</th><th>Keterangan</th><th></th>
+        </tr></thead>
+        <tbody id="tbody"><tr><td colspan="8" class="muted">Memuat…</td></tr></tbody>
+      </table>
+    </div>
+    <datalist id="dlCopart"></datalist>
+  </section>
+
+  <section>
+    <div class="row" style="justify-content:space-between;margin-bottom:12px">
+      <h2 style="margin:0">Laporan Mandays per copart</h2>
+      <button id="btnTambahCopart">+ Tambah copart</button>
+    </div>
+    <div class="mandays" id="mandays"></div>
+    <p class="muted" style="margin:10px 0 0">Mandays terpakai dikosongkan = dihitung otomatis dari angka terakhir di spreadsheet (total copart). Maksimal 4 copart.</p>
+  </section>
+</main>
+
+<main id="pageMaster" class="hidden">
+  <section>
+    <h2>Copart baru di spreadsheet <span class="muted kecil hanya-sdo" style="font-weight:400">— hanya admin yang bisa menambahkan; hubungi admin</span> <span class="muted" style="font-weight:400" id="kandLabel"></span></h2>
+    <p class="muted kecil" style="margin:-6px 0 10px">Nama dari semua implementer yang belum ada di master. Lengkapi kode &amp; lokasi lalu klik <b>Tambah</b>.
+      Kalau kode sudah ada di master, nama ini ditambahkan sebagai kata kunci copart tersebut. Klik <b>Abaikan</b> kalau bukan copart.</p>
+    <div class="tbl-wrap">
+      <table class="master">
+        <thead><tr><th>Nama di spreadsheet</th><th>Contoh</th><th>Muncul</th><th>Kode</th><th>Lokasi</th><th>Standar</th><th></th></tr></thead>
+        <tbody id="tbKandidat"><tr><td colspan="7" class="muted">Memuat…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="row" style="justify-content:space-between;margin-bottom:12px">
+      <h2 style="margin:0">Master copart</h2>
+      <div class="row">
+        <span class="muted kecil" id="masterStatus"></span>
+        <button id="btnTambahMaster" class="khusus-admin">+ Tambah copart</button>
+        <button class="primary khusus-admin" id="btnSimpanMaster">Simpan master data</button>
+      </div>
+    </div>
+    <p class="muted kecil" style="margin:-4px 0 10px">Baris kuning = lokasi belum diisi. Kata kunci = cara copart ini ditulis di spreadsheet (pisahkan dengan koma).
+      Kegiatan default dikosongkan = "Pendampingan &lt;standar&gt; &lt;kode&gt;".</p>
+    <div class="tbl-wrap">
+      <table class="master">
+        <thead><tr><th>Kode</th><th>Nama lengkap</th><th>Kata kunci di spreadsheet</th><th>Lokasi</th><th>Standar</th><th>Kategori</th><th>Kegiatan default</th><th></th></tr></thead>
+        <tbody id="tbMaster"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Diabaikan</h2>
+    <div class="chips" id="abaikan"></div>
+    <p class="muted kecil" style="margin:8px 0 0">Nama-nama ini tidak akan diingatkan lagi. Klik × untuk mengembalikan.</p>
+  </section>
+</main>
+
+<main id="pageSdo" class="hidden">
+  <section>
+    <h2>SDO terdaftar</h2>
+    <p class="muted kecil" style="margin:-6px 0 10px">Tiap SDO punya nama, tanda tangan, daftar copart di Laporan Mandays, dan koreksinya sendiri.
+      Laporan otomatis mengikuti kolom jadwal SDO tersebut di spreadsheet. Master copart dipakai bersama.</p>
+    <div class="tbl-wrap">
+      <table class="sdo">
+        <thead><tr><th>Kode</th><th>Nama lengkap (di kolom "Dibuat")</th><th>Tanda tangan</th><th></th><th class="kolom-akun">Akun login</th><th></th></tr></thead>
+        <tbody id="tbSdo"></tbody>
+      </table>
+    </div>
+    <div class="row khusus-admin" style="margin-top:12px">
+      <input id="sdoBaruKode" placeholder="Kode, mis. JNT" style="width:140px">
+      <input id="sdoBaruNama" placeholder="Nama lengkap" style="width:260px">
+      <button id="btnSdoBaru">+ Tambah SDO</button>
+      <span class="muted kecil" id="sdoStatus"></span>
+    </div>
+  </section>
+  <section class="khusus-admin hidden" id="secTemplate">
+    <h2>Template laporan (.xlsx)</h2>
+    <p class="muted kecil" style="margin:-6px 0 10px">File FM-SDD-008 yang dipakai sebagai dasar laporan (termasuk tanda tangan penyetuju).
+      Disimpan privat; hanya SDO yang login yang bisa memakainya.</p>
+    <div class="row">
+      <span id="templateStatus" class="muted"></span>
+      <button id="btnTemplate">Upload template</button>
+      <input type="file" id="fileTemplate" accept=".xlsx" class="hidden">
+    </div>
+  </section>
+
+  <section class="khusus-admin">
+    <h2>Kode di spreadsheet yang belum terdaftar</h2>
+    <div class="chips" id="sdoBelum"></div>
+  </section>
+  <input type="file" id="fileTtd" accept="image/png,image/jpeg" class="hidden">
+</main>
+
+<footer id="footer">
+  <div class="inner">
+    <span class="muted hanya-lokal">Simpan ke</span>
+    <input id="folder" class="hanya-lokal" placeholder="Folder output">
+    <button class="primary" id="btnBuat">Buat Laporan .xlsx</button>
+    <a id="btnUnduh" class="hidden" href="#"><button type="button">⬇ Unduh lagi</button></a>
+    <button id="btnBuka" class="hidden hanya-lokal">Buka file</button>
+    <button id="btnFinder" class="hidden hanya-lokal">Tampilkan di Finder</button>
+  </div>
+  <div class="hasil" id="hasil"></div>
+</footer>
+
+<div class="login-wrap hidden" id="login">
+  <form class="login-card" id="formLogin">
+    <h2>Laporan Bulanan TQ</h2>
+    <p class="muted kecil" style="margin:0">Masuk dengan kode SDO dan password dari admin.</p>
+    <label>Kode SDO<input id="loginKode" autocomplete="username" placeholder="mis. AJM" required></label>
+    <label>Password<input id="loginPw" type="password" autocomplete="current-password" required></label>
+    <div class="login-err" id="loginErr"></div>
+    <button class="primary" type="submit">Masuk</button>
+  </form>
+  <form class="login-card hidden" id="formAdminAwal">
+    <h2>Siapkan admin pertama</h2>
+    <p class="muted kecil" style="margin:0">Belum ada admin. Buat password untuk akun admin (<b>AJM</b>).
+      Setelah ini, admin bisa membuat akun untuk SDO lain di tab Data SDO.</p>
+    <label>Password baru (min. 8 karakter)<input id="adminPw" type="password" autocomplete="new-password" minlength="8" required></label>
+    <label>Ulangi password<input id="adminPw2" type="password" autocomplete="new-password" minlength="8" required></label>
+    <div class="login-err" id="adminErr"></div>
+    <button class="primary" type="submit">Buat akun admin</button>
+  </form>
+</div>
+
+<div class="modal hidden" id="modalPw">
+  <form id="formPw">
+    <b id="modalPwJudul">Password</b>
+    <input id="modalPw1" type="password" autocomplete="new-password" placeholder="Password baru (min. 8 karakter)" minlength="8" required>
+    <input id="modalPw2" type="password" autocomplete="new-password" placeholder="Ulangi password" minlength="8" required>
+    <div class="login-err" id="modalPwErr"></div>
+    <div class="row" style="justify-content:flex-end"><button type="button" id="modalPwBatal">Batal</button><button class="primary" type="submit">Simpan</button></div>
+  </form>
+</div>
+
+<div class="overlay hidden" id="overlay"><div id="overlayText">Memproses…</div></div>
+
+<script>
+const BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const $ = id => document.getElementById(id);
+let awal = null, data = null, timer = null;
+let sdo = null;
+try { sdo = localStorage.getItem("sdo"); } catch (e) {}
+
+// Di GitHub Pages tidak ada server: /api/* dijalankan di browser (browser.js: Pyodide + Supabase).
+const BROWSER = location.hostname.endsWith("github.io") || new URLSearchParams(location.search).has("browser");
+let modBrowser = null;
+async function api(path, body) {
+  if (BROWSER) {
+    if (!modBrowser) {
+      modBrowser = await import("./browser.js");
+      modBrowser.aturStatus(t => { if (!$("overlay").classList.contains("hidden")) $("overlayText").textContent = t; });
+    }
+    try { return await modBrowser.api(path, body); }
+    catch (e) {
+      if (e.status === 401 && !path.startsWith("/api/login")) tampilLogin();
+      throw e;
+    }
+  }
+  const r = await fetch(path, body === undefined ? {} : {
+    method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401 && !path.startsWith("/api/login")) { tampilLogin(); throw new Error(j.error || "Silakan login."); }
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+
+// --- login & akun
+let status = null;
+function tampilLogin() {
+  sibuk(null);
+  document.body.classList.remove("memuat");
+  $("login").classList.remove("hidden");
+  const awalAdmin = status && status.perlu_admin_awal;
+  $("formLogin").classList.toggle("hidden", !!awalAdmin);
+  $("formAdminAwal").classList.toggle("hidden", !awalAdmin);
+  (awalAdmin ? $("adminPw") : $("loginKode")).focus();
+}
+
+function mintaPassword(judul) {
+  return new Promise(selesai => {
+    $("modalPwJudul").textContent = judul;
+    $("modalPw1").value = $("modalPw2").value = ""; $("modalPwErr").textContent = "";
+    $("modalPw").classList.remove("hidden"); $("modalPw1").focus();
+    $("modalPwBatal").onclick = () => { $("modalPw").classList.add("hidden"); selesai(null); };
+    $("formPw").onsubmit = ev => {
+      ev.preventDefault();
+      if ($("modalPw1").value !== $("modalPw2").value) { $("modalPwErr").textContent = "Password tidak sama."; return; }
+      $("modalPw").classList.add("hidden"); selesai($("modalPw1").value);
+    };
+  });
+}
+
+$("formLogin").onsubmit = async ev => {
+  ev.preventDefault(); $("loginErr").textContent = "";
+  try {
+    await api("/api/login", {kode: $("loginKode").value, password: $("loginPw").value});
+    $("loginPw").value = ""; location.reload();
+  } catch (e) { $("loginErr").textContent = e.message; }
+};
+$("formAdminAwal").onsubmit = async ev => {
+  ev.preventDefault(); $("adminErr").textContent = "";
+  if ($("adminPw").value !== $("adminPw2").value) { $("adminErr").textContent = "Password tidak sama."; return; }
+  try { await api("/api/siapkan_admin", {password: $("adminPw").value}); location.reload(); }
+  catch (e) { $("adminErr").textContent = e.message; }
+};
+$("btnKeluar").onclick = async () => { await api("/api/logout", {}); try { localStorage.removeItem("sdo"); } catch (e) {} location.reload(); };
+$("btnGantiPw").onclick = async () => {
+  const pw = await mintaPassword("Ganti password Anda");
+  if (!pw) return;
+  try { await api("/api/ganti_password", {password: pw}); alert("Password berhasil diganti."); }
+  catch (e) { alert("Gagal: " + e.message); }
+};
+
+function sibuk(teks) {
+  $("overlayText").textContent = teks || "";
+  $("overlay").classList.toggle("hidden", !teks);
+}
+
+function periode() {
+  return `${$("tahun").value}-${String(+$("bulan").value + 1).padStart(2, "0")}`;
+}
+
+function fmtTgl(iso) { const [y, m, d] = iso.split("-"); return `${d}/${m}/${y.slice(2)}`; }
+
+function esc(s) { return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function renderStat(d) {
+  $("labelPeriode").textContent = d.label;
+  $("sHari").textContent = d.baris.length;
+  $("sCopart").textContent = d.ringkas.copart;
+  $("sLain").textContent = d.ringkas.lain;
+  $("sKantor").textContent = d.ringkas.kantor;
+  $("sAbsen").textContent = d.ringkas.absen;
+  $("warn").classList.toggle("hidden", !d.peringatan.length);
+  $("warnList").innerHTML = d.peringatan.map(p => `<li>${esc(p)}</li>`).join("");
+  $("diunduh").textContent = d.diunduh ? `Data diunduh ${d.diunduh}` : "";
+  tampilReminder(d.reminder);
+  d.baris.forEach((b, i) => {
+    const tr = $("tbody").children[i];
+    if (tr) tr.classList.toggle("ragu", b.ragu);
+  });
+  d.mandays.forEach((m, i) => {
+    const el = $("mandays").children[i];
+    if (!el) return;
+    el.querySelector(".info").textContent = `Otomatis: ${m.terpakai ?? "–"} (${m.info})`;
+    const terpakai = el.querySelector("[name=terpakai]").value || m.terpakai;
+    const kuota = el.querySelector("[name=kuota]").value;
+    el.querySelector(".sisa").textContent = (kuota && terpakai !== "" && terpakai != null) ? `Sisa: ${kuota - terpakai}` : "";
+  });
+}
+
+function renderTabel(d) {
+  $("tbody").innerHTML = d.baris.map((b, i) => `
+    <tr data-tgl="${b.tanggal}" class="${b.ragu ? "ragu" : ""}">
+      <td class="no">${i + 1}</td>
+      <td class="hari ${b.hari === "Monday" ? "senin" : ""}">${b.hari}</td>
+      <td class="tgl">${fmtTgl(b.tanggal)}</td>
+      <td class="sumber">${esc(b.teks) || "<i>(kosong)</i>"}</td>
+      <td class="copart"><input name="copart" list="dlCopart" value="${esc(b.copart)}" data-auto="${esc(b.auto.copart)}"></td>
+      <td><input name="kegiatan" value="${esc(b.kegiatan)}" data-auto="${esc(b.auto.kegiatan)}"></td>
+      <td class="ket"><input name="ket" value="${esc(b.ket)}" data-auto="${esc(b.auto.ket)}"></td>
+      <td class="aksi"><button class="reset" title="Kembalikan ke hasil otomatis">↺</button></td>
+    </tr>`).join("");
+  $("tbody").querySelectorAll("tr").forEach(tandaiBaris);
+}
+
+function tandaiBaris(tr) {
+  let ada = false;
+  tr.querySelectorAll("input").forEach(inp => {
+    const beda = inp.value.trim() !== inp.dataset.auto;
+    inp.classList.toggle("diubah", beda);
+    ada = ada || beda;
+  });
+  tr.querySelector(".reset").style.visibility = ada ? "visible" : "hidden";
+}
+
+function kartuCopart(m) {
+  const div = document.createElement("div");
+  div.className = "md";
+  div.innerHTML = `
+    <div class="head"><b>Copart</b><button class="hapus" title="Hapus copart ini">Hapus</button></div>
+    <div class="grid">
+      <label>Kode<input name="kode" list="dlCopart" value="${esc(m.kode)}"></label>
+      <label>Kuota mandays<input name="kuota" type="number" min="0" value="${esc(m.kuota)}"></label>
+      <label>Mandays terpakai<input name="terpakai" type="number" min="0" placeholder="otomatis" value="${esc(m.mandays_terpakai ?? "")}"></label>
+    </div>
+    <div class="row muted" style="font-size:12px;justify-content:space-between"><span class="info"></span><span class="sisa"></span></div>
+    <label>Progress step terakhir<input name="step" value="${esc(m.progress_step)}"></label>
+    <label>Laporan singkat progress<textarea name="laporan">${esc(m.laporan_singkat)}</textarea></label>`;
+  div.querySelector(".hapus").onclick = () => { div.remove(); jadwalPratinjau(); };
+  return div;
+}
+
+function renderMandays(d) {
+  $("mandays").innerHTML = "";
+  d.mandays.forEach(m => $("mandays").appendChild(kartuCopart(m)));
+}
+
+function form() {
+  return {
+    periode: periode(),
+    sdo,
+    folder_output: $("folder").value.trim(),
+    baris: [...$("tbody").querySelectorAll("tr[data-tgl]")].map(tr => ({
+      tanggal: tr.dataset.tgl,
+      copart: tr.querySelector("[name=copart]").value,
+      kegiatan: tr.querySelector("[name=kegiatan]").value,
+      ket: tr.querySelector("[name=ket]").value,
+    })),
+    mandays_copart: [...$("mandays").children].map(el => {
+      const v = n => el.querySelector(`[name=${n}]`).value;
+      return {
+        kode: v("kode").trim().toUpperCase(),
+        kuota: Number(v("kuota")) || 0,
+        mandays_terpakai: v("terpakai") === "" ? null : Number(v("terpakai")),
+        progress_step: v("step"),
+        laporan_singkat: v("laporan"),
+      };
+    }).filter(m => m.kode),
+  };
+}
+
+async function ambil(muatUlang = false) {
+  sibuk(muatUlang ? "Mengunduh ulang spreadsheet kehadiran…" : "Mengambil data kehadiran…");
+  try {
+    data = await api("/api/ambil", {periode: periode(), muat_ulang: muatUlang, sdo});
+    renderTabel(data); renderMandays(data); renderStat(data);
+    $("hasil").textContent = ""; $("hasil").className = "hasil";
+    $("btnBuka").classList.add("hidden"); $("btnFinder").classList.add("hidden");
+  } catch (e) { pesan(e.message, true); }
+  sibuk(null);
+}
+
+function jadwalPratinjau() {
+  clearTimeout(timer);
+  timer = setTimeout(async () => {
+    try { data = await api("/api/pratinjau", form()); renderStat(data); } catch (e) { pesan(e.message, true); }
+  }, 350);
+}
+
+function pesan(teks, err) { $("hasil").textContent = teks; $("hasil").className = "hasil " + (err ? "err" : "ok"); }
+
+async function buat() {
+  $("btnBuat").disabled = true; sibuk("Membuat laporan…");
+  try {
+    data = await api("/api/buat", form());
+    renderTabel(data); renderMandays(data); renderStat(data);
+    const sisa = data.baris.filter(b => b.ragu).length;
+    pesan(`✓ ${data.file ? "Tersimpan: " + data.file : data.nama_file + " siap diunduh"}` + (sisa ? `  ·  ${sisa} baris masih kuning` : ""), false);
+    $("btnUnduh").href = data.unduh; $("btnUnduh").setAttribute("download", data.nama_file);
+    $("btnUnduh").classList.remove("hidden");
+    if (status.online) $("btnUnduh").click();
+    else { $("btnBuka").classList.remove("hidden"); $("btnFinder").classList.remove("hidden"); }
+  } catch (e) { pesan("Gagal: " + e.message, true); }
+  $("btnBuat").disabled = false; sibuk(null);
+}
+
+// --- reminder & halaman
+function tampilReminder(r) {
+  if (!r) return;
+  const bagian = [];
+  if (r.copart_baru) bagian.push(`<b>${r.copart_baru}</b> nama copart baru di spreadsheet belum ada di master`);
+  if (r.template_belum) bagian.push(`<b>Template laporan belum diupload</b> — admin perlu mengupload di tab Data SDO`);
+  if (r.belum_lokasi.length) bagian.push(`<b>${r.belum_lokasi.length}</b> copart belum ada lokasinya (${r.belum_lokasi.map(esc).join(", ")})`);
+  $("reminder").classList.toggle("hidden", !bagian.length);
+  $("reminderText").innerHTML = "⚠ " + bagian.join(" · ");
+  const n = r.copart_baru + r.belum_lokasi.length;
+  $("badge").textContent = n;
+  $("badge").classList.toggle("hidden", !n);
+  const kurang = r.sdo_kurang || [];
+  $("reminderSdo").classList.toggle("hidden", !kurang.length);
+  $("reminderSdoText").innerHTML = `⚠ Data SDO <b>${esc(r.sdo)}</b> belum lengkap: ${kurang.join(" dan ")} belum diisi.`;
+  $("badgeSdo").textContent = kurang.length ? "!" : "";
+  $("badgeSdo").classList.toggle("hidden", !kurang.length);
+}
+
+let masterBerubah = false;
+async function tampilkan(hal) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("aktif", t.dataset.hal === hal));
+  $("pageLaporan").classList.toggle("hidden", hal !== "laporan");
+  $("footer").classList.toggle("hidden", hal !== "laporan");
+  $("pageMaster").classList.toggle("hidden", hal !== "master");
+  $("pageSdo").classList.toggle("hidden", hal !== "sdo");
+  window.scrollTo(0, 0);
+  if (hal === "master") return muatMaster();
+  if (hal === "sdo") return muatSdo();
+  if (masterBerubah) {  // master diubah: hitung ulang laporan tanpa membuang edit di tabel
+    masterBerubah = false;
+    try { data = await api("/api/pratinjau", form()); renderTabel(data); renderStat(data); } catch (e) { pesan(e.message, true); }
+  }
+}
+
+async function segarkanAwal() {
+  awal = await api(`/api/awal?sdo=${encodeURIComponent(sdo || "")}`);
+  sdo = awal.kode;
+  try { localStorage.setItem("sdo", sdo); } catch (e) {}
+  $("pilihSdo").innerHTML = awal.sdo.map(x =>
+    `<option value="${esc(x.kode)}" ${x.kode === sdo ? "selected" : ""}>${esc(x.kode)}${x.nama ? " – " + esc(x.nama) : ""}</option>`).join("");
+  $("dlCopart").innerHTML = ["-", ...awal.copart].map(c => `<option value="${c}">`).join("");
+}
+
+async function muatMaster() {
+  try {
+    const [m, k] = await Promise.all([api("/api/master", {}), api("/api/master/kandidat", {periode: periode(), sdo})]);
+    $("kandLabel").textContent = `— periode ${k.label}`;
+    $("tbKandidat").innerHTML = k.kandidat.length ? k.kandidat.map(t => `
+      <tr data-frasa="${esc(t.frasa)}">
+        <td><b>${esc(t.frasa)}</b></td>
+        <td class="sumber">${esc(t.contoh)}<br><span class="kecil">${esc(t.implementer.join(", "))}</span></td>
+        <td class="num">${t.jumlah}×</td>
+        <td class="kode"><input name="kode" list="dlCopart" value="${esc(t.kode)}"></td>
+        <td class="lok"><input name="lokasi" value="${esc(t.lokasi)}" placeholder="Kota"></td>
+        <td class="std"><input name="standar" placeholder="QMS/EMS"></td>
+        <td style="white-space:nowrap"><button class="primary aksiTambah khusus-admin">Tambah</button> <button class="aksiAbaikan khusus-admin">Abaikan</button></td>
+      </tr>`).join("") : `<tr><td colspan="7" class="muted">Tidak ada nama baru. 👍</td></tr>`;
+    $("tbMaster").innerHTML = "";
+    m.copart.forEach(c => $("tbMaster").appendChild(barisMaster(c)));
+    $("abaikan").innerHTML = m.abaikan.length
+      ? m.abaikan.map(a => `<span class="chip">${esc(a)}<button title="Kembalikan" data-frasa="${esc(a)}">×</button></span>`).join("")
+      : `<span class="muted kecil">Belum ada.</span>`;
+    $("masterStatus").textContent = "";
+  } catch (e) { alert(e.message); }
+}
+
+function barisMaster(c) {
+  const tr = document.createElement("tr");
+  tr.dataset.asal = c.kode || "";
+  tr.innerHTML = `
+    <td class="kode"><input name="kode" value="${esc(c.kode)}"></td>
+    <td><input name="nama" value="${esc(c.nama)}" placeholder="opsional"></td>
+    <td><input name="kata_kunci" value="${esc((c.kata_kunci || []).join(", "))}"></td>
+    <td class="lok"><input name="lokasi" value="${esc(c.lokasi)}" placeholder="wajib diisi"></td>
+    <td class="std"><input name="standar" value="${esc(c.standar)}"></td>
+    <td class="kat"><select name="kategori"><option value="copart">Copart</option><option value="kantor" ${c.kategori === "kantor" ? "selected" : ""}>Kantor</option></select></td>
+    <td><input name="kegiatan_default" value="${esc(c.kegiatan_default)}" placeholder="otomatis"></td>
+    <td class="aksi"><button class="reset hapusMaster khusus-admin" title="Hapus">🗑</button></td>`;
+  tandaiMaster(tr);
+  return tr;
+}
+
+function tandaiMaster(tr) {
+  tr.classList.toggle("kurang", !tr.querySelector("[name=lokasi]").value.trim());
+}
+
+async function simpanMaster() {
+  const copart = [...$("tbMaster").children].map(tr => {
+    const v = n => tr.querySelector(`[name=${n}]`).value;
+    return {kode_asal: tr.dataset.asal, kode: v("kode"), nama: v("nama"), lokasi: v("lokasi"), standar: v("standar"),
+            kategori: v("kategori"), kegiatan_default: v("kegiatan_default"),
+            kata_kunci: v("kata_kunci").split(",").map(s => s.trim()).filter(Boolean)};
+  });
+  try {
+    await api("/api/master/simpan", {copart});
+    await setelahMasterBerubah();
+    $("masterStatus").textContent = "✓ Tersimpan";
+  } catch (e) { $("masterStatus").textContent = "Gagal: " + e.message; }
+}
+
+async function setelahMasterBerubah() {
+  masterBerubah = true;
+  await segarkanAwal();
+  await muatMaster();
+  try { tampilReminder((await api("/api/pratinjau", form())).reminder); } catch (e) {}
+}
+
+// --- data SDO
+async function muatSdo() {
+  try {
+    const r = await api("/api/sdo", {periode: periode(), sdo});
+    const t = Date.now();
+    $("tbSdo").innerHTML = r.sdo.map(x => `
+      <tr data-kode="${esc(x.kode)}">
+        <td><b>${esc(x.kode)}</b>${x.kode === sdo ? ' <span class="muted kecil">(aktif)</span>' : ""}</td>
+        <td><input name="nama" value="${esc(x.nama)}" placeholder="wajib diisi" style="width:100%"></td>
+        <td><div class="ttd-box">${x.ttd ? `<img src="${x.ttd_url || `/ttd/${esc(x.kode)}.png?t=${t}`}" alt="Tanda tangan ${esc(x.kode)}">` : "<span>belum ada</span>"}</div></td>
+        <td style="white-space:nowrap">
+          <button class="aksiUpload">Upload tanda tangan</button>
+          ${x.ttd ? '<button class="aksiHapusTtd">Hapus ttd</button>' : ""}
+        </td>
+        <td class="kolom-akun" style="white-space:nowrap">
+          <span class="muted kecil">${x.admin ? "admin" : x.akun ? "aktif" : "belum ada"}</span>
+          <button class="aksiAkun khusus-admin">${x.akun ? "Reset password" : "Buat akun"}</button>
+        </td>
+        <td style="white-space:nowrap" class="khusus-admin">
+          <button class="aksiPakai" ${x.kode === sdo ? "disabled" : ""}>Pakai</button>
+          <button class="hapus aksiHapusSdo" style="color:var(--danger)" ${x.admin ? "disabled" : ""}>Hapus</button>
+        </td>
+      </tr>`).join("");
+    document.querySelectorAll(".kolom-akun").forEach(el => el.classList.toggle("hidden", !r.online));
+    $("secTemplate").classList.toggle("hidden", !r.template);
+    if (r.template) {
+      $("templateStatus").innerHTML = r.template.diubah
+        ? `✓ Sudah diupload (${new Date(r.template.diubah).toLocaleString("id-ID")})`
+        : '<b style="color:var(--danger)">Belum ada template — laporan belum bisa dibuat.</b>';
+    }
+    $("sdoBelum").innerHTML = r.belum_terdaftar.length
+      ? r.belum_terdaftar.map(k => `<span class="chip">${esc(k)}<button data-daftar="${esc(k)}" title="Daftarkan">＋</button></span>`).join("")
+      : '<span class="muted kecil">Semua kode di spreadsheet periode ini sudah terdaftar.</span>';
+  } catch (e) { $("sdoStatus").textContent = "Gagal: " + e.message; }
+}
+
+async function gantiSdo(kode) {
+  sdo = kode;
+  await segarkanAwal();
+  await ambil(false);
+}
+
+let ttdUntuk = null;
+$("tbSdo").addEventListener("click", async e => {
+  const tr = e.target.closest("tr");
+  if (!tr) return;
+  const kode = tr.dataset.kode;
+  try {
+    if (e.target.classList.contains("aksiUpload")) { ttdUntuk = kode; $("fileTtd").value = ""; $("fileTtd").click(); return; }
+    if (e.target.classList.contains("aksiHapusTtd")) await api("/api/sdo/ttd", {kode, data: null});
+    else if (e.target.classList.contains("aksiPakai")) { await gantiSdo(kode); }
+    else if (e.target.classList.contains("aksiAkun")) {
+      const pw = await mintaPassword(`Password login untuk ${kode}`);
+      if (!pw) return;
+      await api("/api/sdo/akun", {kode, password: pw});
+      alert(`Akun ${kode} siap. Beri tahu ${kode}: login dengan kode "${kode}" dan password yang baru Anda buat.`);
+    }
+    else if (e.target.classList.contains("aksiHapusSdo")) {
+      if (!confirm(`Hapus SDO ${kode} beserta data copart & koreksinya?`)) return;
+      await api("/api/sdo/hapus", {kode});
+      if (kode === sdo) { sdo = null; await segarkanAwal(); await ambil(false); }
+    } else return;
+    await segarkanAwal(); await muatSdo(); $("sdoStatus").textContent = "✓ Tersimpan";
+  } catch (err) { $("sdoStatus").textContent = "Gagal: " + err.message; }
+});
+$("tbSdo").addEventListener("change", async e => {
+  if (e.target.name !== "nama") return;
+  const kode = e.target.closest("tr").dataset.kode;
+  try {
+    await api("/api/sdo/simpan", {kode, nama: e.target.value});
+    await segarkanAwal(); $("sdoStatus").textContent = `✓ Nama ${kode} tersimpan`;
+    if (kode === sdo) jadwalPratinjau();
+  } catch (err) { $("sdoStatus").textContent = "Gagal: " + err.message; }
+});
+$("fileTtd").addEventListener("change", () => {
+  const f = $("fileTtd").files[0];
+  if (!f || !ttdUntuk) return;
+  const rd = new FileReader();
+  rd.onload = async () => {
+    try {
+      await api("/api/sdo/ttd", {kode: ttdUntuk, data: rd.result});
+      await segarkanAwal(); await muatSdo(); $("sdoStatus").textContent = `✓ Tanda tangan ${ttdUntuk} tersimpan`;
+      if (ttdUntuk === sdo) jadwalPratinjau();
+    } catch (err) { $("sdoStatus").textContent = "Gagal: " + err.message; }
+  };
+  rd.readAsDataURL(f);
+});
+$("btnSdoBaru").onclick = async () => {
+  try {
+    await api("/api/sdo/simpan", {kode: $("sdoBaruKode").value, nama: $("sdoBaruNama").value});
+    $("sdoBaruKode").value = ""; $("sdoBaruNama").value = "";
+    await segarkanAwal(); await muatSdo(); $("sdoStatus").textContent = "✓ SDO ditambahkan";
+  } catch (err) { $("sdoStatus").textContent = "Gagal: " + err.message; }
+};
+$("sdoBelum").addEventListener("click", async e => {
+  const kode = e.target.dataset.daftar;
+  if (!kode) return;
+  await api("/api/sdo/simpan", {kode});
+  await segarkanAwal(); await muatSdo(); $("sdoStatus").textContent = `✓ ${kode} didaftarkan — lengkapi nama & tanda tangan`;
+});
+$("pilihSdo").onchange = () => gantiSdo($("pilihSdo").value);
+$("btnTemplate").onclick = () => { $("fileTemplate").value = ""; $("fileTemplate").click(); };
+$("fileTemplate").addEventListener("change", () => {
+  const f = $("fileTemplate").files[0];
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = async () => {
+    try { await api("/api/template/simpan", {data: rd.result}); await muatSdo(); $("sdoStatus").textContent = "✓ Template tersimpan"; }
+    catch (err) { $("sdoStatus").textContent = "Gagal: " + err.message; }
+  };
+  rd.readAsDataURL(f);
+});
+
+// --- event
+document.querySelectorAll(".tab, [data-ke]").forEach(b => b.onclick = () => tampilkan(b.dataset.hal || b.dataset.ke));
+$("btnSimpanMaster").onclick = simpanMaster;
+$("btnTambahMaster").onclick = () => {
+  const tr = barisMaster({kode: "", kata_kunci: []});
+  $("tbMaster").prepend(tr);
+  tr.querySelector("input").focus();
+};
+$("tbMaster").addEventListener("input", e => {
+  tandaiMaster(e.target.closest("tr"));
+  $("masterStatus").textContent = "Ada perubahan belum disimpan";
+});
+$("tbMaster").addEventListener("click", e => {
+  if (!e.target.classList.contains("hapusMaster")) return;
+  e.target.closest("tr").remove();
+  $("masterStatus").textContent = "Ada perubahan belum disimpan";
+});
+$("tbKandidat").addEventListener("click", async e => {
+  const tr = e.target.closest("tr");
+  if (!tr || !tr.dataset.frasa) return;
+  const v = n => tr.querySelector(`[name=${n}]`).value.trim();
+  try {
+    if (e.target.classList.contains("aksiTambah")) {
+      if (!v("lokasi") && !confirm("Lokasi belum diisi. Tetap tambahkan?")) return;
+      await api("/api/master/tambah", {frasa: tr.dataset.frasa, kode: v("kode"), lokasi: v("lokasi"), standar: v("standar")});
+    } else if (e.target.classList.contains("aksiAbaikan")) {
+      await api("/api/master/abaikan", {frasa: tr.dataset.frasa});
+    } else return;
+    await setelahMasterBerubah();
+  } catch (err) { alert(err.message); }
+});
+$("abaikan").addEventListener("click", async e => {
+  if (!e.target.dataset.frasa) return;
+  await api("/api/master/abaikan", {frasa: e.target.dataset.frasa, batal: true});
+  await setelahMasterBerubah();
+});
+$("tbody").addEventListener("input", e => {
+  const tr = e.target.closest("tr");
+  if (e.target.name === "copart" && awal.lokasi[e.target.value.trim().toUpperCase()]) {
+    tr.querySelector("[name=ket]").value = awal.lokasi[e.target.value.trim().toUpperCase()];
+  }
+  tandaiBaris(tr); jadwalPratinjau();
+});
+$("tbody").addEventListener("click", e => {
+  if (!e.target.classList.contains("reset")) return;
+  const tr = e.target.closest("tr");
+  tr.querySelectorAll("input").forEach(inp => inp.value = inp.dataset.auto);
+  tandaiBaris(tr); jadwalPratinjau();
+});
+$("mandays").addEventListener("input", jadwalPratinjau);
+$("btnTambahCopart").onclick = () => {
+  if ($("mandays").children.length >= 4) return pesan("Template hanya punya 4 blok copart.", true);
+  $("mandays").appendChild(kartuCopart({kode: "", kuota: 60, mandays_terpakai: null, progress_step: "", laporan_singkat: ""}));
+};
+$("btnAmbil").onclick = () => ambil(false);
+$("bulan").onchange = $("tahun").onchange = () => ambil(false);
+$("btnMuatUlang").onclick = () => ambil(true);
+$("btnBuat").onclick = buat;
+$("btnBuka").onclick = () => api("/api/buka", {periode: periode(), sdo}).catch(e => pesan(e.message, true));
+$("btnFinder").onclick = () => api("/api/buka", {periode: periode(), sdo, finder: true}).catch(e => pesan(e.message, true));
+
+(async () => {
+  status = await api("/api/status");
+  if (!status.login) return tampilLogin();
+  document.body.classList.remove("memuat");
+  const L = status.login;
+  document.body.classList.toggle("bukan-admin", !L.admin);
+  document.querySelectorAll(".hanya-lokal").forEach(el => el.classList.toggle("hidden", status.online));
+  document.querySelectorAll(".hanya-sdo").forEach(el => el.classList.toggle("hidden", L.admin));
+  if (status.online) {
+    $("akun").classList.remove("hidden");
+    $("akunNama").textContent = `${L.kode}${L.nama ? " – " + L.nama : ""}${L.admin ? " · admin" : ""}`;
+    if (!L.admin) sdo = L.kode;
+  }
+  await segarkanAwal();
+  $("pilihSdo").disabled = status.online && !L.admin;
+  $("folder").value = awal.folder_output;
+  $("bulan").innerHTML = BULAN.map((b, i) => `<option value="${i}">${b}</option>`).join("");
+  const [y, m] = awal.periode.split("-");
+  $("tahun").value = y; $("bulan").value = +m - 1;
+  ambil(false);
+})();
+</script>
+</body>
+</html>
