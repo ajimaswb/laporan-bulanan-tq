@@ -172,6 +172,8 @@ class Handler(BaseHTTPRequestHandler):
             q = {k: v[0] for k, v in parse_qs(url.query).items()}
             if url.path in ("/", "/index.html"):
                 return self.kirim(200, HTML.read_bytes(), "text/html")
+            if url.path == "/logo-tq.png":
+                return self.kirim(200, (HTML.parent / "logo-tq.png").read_bytes(), "image/png")
             if url.path == "/api/sehat":
                 return self.kirim(200, {"ok": pn.sehat() if ONLINE else True})
             if url.path == "/api/status":

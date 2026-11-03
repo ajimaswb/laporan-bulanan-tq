@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Laporan Bulanan</title>
+<title>Laporan Bulanan TQ</title>
+<link rel="icon" type="image/png" href="logo-tq.png">
+<meta name="theme-color" content="#0101FF">
 <style>
   :root {
     --bg: #f5f6f8; --card: #ffffff; --text: #1d2330; --muted: #6b7280; --line: #e3e6eb;
@@ -136,14 +138,109 @@
     .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .md .grid { grid-template-columns: 1fr 1fr; }
   }
+  /* ------------------------------------------------------------ Tema Total Quality */
+  :root {
+    --tq-blue: #0101FF; --tq-blue-2: #0007C9; --tq-navy: #070B5C; --tq-yellow: #FACB01;
+    --bg: #f2f4fb; --card: #ffffff; --text: #121733; --muted: #5d6482; --line: #e0e4f1;
+    --accent: #0101FF; --accent-hover: #0007C9; --accent-ink: #ffffff; --accent-soft: #eceeff;
+    --warn-bg: #fff8d9; --warn-line: #f3d24d; --edit: #e8eaff;
+    --shadow: 0 1px 2px rgba(7, 11, 92, .05), 0 4px 16px rgba(7, 11, 92, .05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b0d1c; --card: #141833; --text: #e8eaf8; --muted: #9ba1c2; --line: #262b4d;
+      --accent: #5c62ff; --accent-hover: #7a7fff; --accent-ink: #ffffff; --accent-soft: #1c2050;
+      --warn-bg: #362d0c; --warn-line: #7d661b; --edit: #222760;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .3);
+    }
+  }
+  :focus-visible { outline: 2px solid var(--tq-yellow); outline-offset: 2px; }
+  button.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  select, input, textarea { background: var(--card); }
+  select:focus, input:focus, textarea:focus { border-color: var(--accent); outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+
+  /* header biru dengan garis kuning */
+  header { background: linear-gradient(115deg, var(--tq-blue) 0%, var(--tq-blue-2) 62%, var(--tq-navy) 100%);
+           color: #fff; border-bottom: 3px solid var(--tq-yellow); box-shadow: 0 2px 12px rgba(7, 11, 92, .25); }
+  header .sub, header .muted { color: rgba(255, 255, 255, .78); }
+  .merek { display: flex; align-items: center; gap: 12px; }
+  .logo { width: 46px; height: 46px; border-radius: 12px; background: #fff; display: grid; place-items: center;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, .18); flex: none; }
+  .logo img { width: 38px; height: 38px; object-fit: contain; }
+  header h1 { font-size: 19px; letter-spacing: .01em; }
+  header button { background: rgba(255, 255, 255, .12); border-color: rgba(255, 255, 255, .32); color: #fff; }
+  header button:hover { background: rgba(255, 255, 255, .22); border-color: #fff; }
+  .sdo-pilih { color: #fff; }
+  .sdo-pilih select { background: #fff; color: var(--tq-navy); border-color: transparent; }
+  .tab { color: rgba(255, 255, 255, .78); border-radius: 8px 8px 0 0; }
+  .tab:hover { color: #fff; background: rgba(255, 255, 255, .10); border-color: transparent; }
+  .tab.aktif { color: #fff; background: rgba(255, 255, 255, .16); box-shadow: inset 0 -3px 0 var(--tq-yellow); }
+  .badge { background: var(--tq-yellow); color: var(--tq-navy); font-weight: 700; }
+
+  /* kartu & judul bagian */
+  section { box-shadow: var(--shadow); }
+  h2 { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+  h2::before { content: ""; width: 4px; height: 15px; border-radius: 2px; background: var(--tq-yellow);
+               align-self: center; margin-right: 4px; }
+  .periode-label { color: var(--accent); }
+  th { background: var(--accent-soft); color: var(--accent); }
+  thead th:first-child { border-top-left-radius: 8px; }
+  thead th:last-child { border-top-right-radius: 8px; }
+  td.hari.senin { color: var(--accent); }
+
+  /* ringkasan mandays */
+  .stat { border-top: 4px solid var(--line); background: var(--card); }
+  .stat.utama { background: linear-gradient(135deg, var(--tq-blue), var(--tq-blue-2)); border-color: transparent;
+                border-top-color: var(--tq-yellow); color: #fff; }
+  .stat.utama span { color: rgba(255, 255, 255, .82); }
+  .stat.biru { border-top-color: var(--tq-blue); }
+  .stat.kuning { border-top-color: var(--tq-yellow); }
+  .stat.navy { border-top-color: var(--tq-navy); }
+  .stat.abu { border-top-color: #9aa1b8; }
+  .stat b { font-size: 26px; }
+
+  .reminder { border-left: 5px solid var(--tq-yellow); }
+  main { grid-template-columns: minmax(0, 1fr); }
+  main > *, section { min-width: 0; }
+  .md { border-top: 3px solid var(--accent); }
+  .chip { background: var(--accent-soft); border-color: transparent; }
+  footer { box-shadow: 0 -4px 16px rgba(7, 11, 92, .08); border-top: 3px solid var(--tq-yellow); }
+  #btnBuat { padding: 10px 20px; }
+
+  /* login */
+  .login-wrap { background: radial-gradient(circle at 88% 10%, transparent 0 15vmax, var(--tq-yellow) 15.1vmax 16.6vmax, transparent 16.7vmax),
+                            radial-gradient(circle at 6% 96%, transparent 0 9vmax, rgba(255, 255, 255, .10) 9.1vmax 9.8vmax, transparent 9.9vmax),
+                            linear-gradient(135deg, var(--tq-blue) 0%, var(--tq-blue-2) 55%, var(--tq-navy) 100%); }
+  .login-card { box-shadow: 0 20px 50px rgba(0, 0, 0, .25); border: none; border-top: 4px solid var(--tq-yellow); }
+  .login-logo { width: 84px; height: 84px; object-fit: contain; justify-self: center; margin-bottom: -4px; }
+  .login-card h2 { justify-content: center; }
+  .login-card h2::before { display: none; }
+
+  /* memproses */
+  .overlay div { display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow); }
+  .putar { width: 20px; height: 20px; border-radius: 50%; border: 3px solid var(--accent-soft);
+           border-top-color: var(--tq-blue); border-right-color: var(--tq-yellow); animation: putar .8s linear infinite; }
+  @keyframes putar { to { transform: rotate(360deg); } }
+
+  @media (max-width: 720px) {
+    header { flex-wrap: wrap; }
+    .logo { width: 40px; height: 40px; }
+    .logo img { width: 32px; height: 32px; }
+    .sdo-pilih { margin-left: 0; }
+    .stat b { font-size: 22px; }
+  }
 </style>
 </head>
 <body class="memuat">
 <header>
   <div class="row">
-    <div>
-      <h1>Laporan Bulanan</h1>
-      <div class="sub">FM-SDD-008</div>
+    <div class="merek">
+      <span class="logo"><img src="logo-tq.png" alt="Total Quality"></span>
+      <div>
+        <h1>Laporan Bulanan</h1>
+        <div class="sub">Total Quality · FM-SDD-008</div>
+      </div>
     </div>
     <label class="sdo-pilih">SDO <select id="pilihSdo"></select></label>
     <nav class="tabs">
@@ -187,11 +284,11 @@
   <section>
     <h2>Ringkasan mandays</h2>
     <div class="stats">
-      <div class="stat"><b id="sHari">–</b><span>Hari kerja</span></div>
-      <div class="stat"><b id="sCopart">–</b><span>Di copart</span></div>
-      <div class="stat"><b id="sLain">–</b><span>Copart lain / non-mandays</span></div>
-      <div class="stat"><b id="sKantor">–</b><span>Di kantor</span></div>
-      <div class="stat"><b id="sAbsen">–</b><span>Cuti / libur</span></div>
+      <div class="stat utama"><b id="sHari">–</b><span>Hari kerja</span></div>
+      <div class="stat biru"><b id="sCopart">–</b><span>Di copart</span></div>
+      <div class="stat kuning"><b id="sLain">–</b><span>Copart lain / non-mandays</span></div>
+      <div class="stat navy"><b id="sKantor">–</b><span>Di kantor</span></div>
+      <div class="stat abu"><b id="sAbsen">–</b><span>Cuti / libur</span></div>
     </div>
     <div class="warn hidden" id="warn"><b>Perlu dicek</b><ul id="warnList"></ul></div>
   </section>
@@ -309,6 +406,7 @@
 
 <div class="login-wrap hidden" id="login">
   <form class="login-card" id="formLogin">
+    <img class="login-logo" src="logo-tq.png" alt="Total Quality">
     <h2>Laporan Bulanan TQ</h2>
     <p class="muted kecil" style="margin:0">Masuk dengan kode SDO dan password dari admin.</p>
     <label>Kode SDO<input id="loginKode" autocomplete="username" placeholder="mis. AJM" required></label>
@@ -317,6 +415,7 @@
     <button class="primary" type="submit">Masuk</button>
   </form>
   <form class="login-card hidden" id="formAdminAwal">
+    <img class="login-logo" src="logo-tq.png" alt="Total Quality">
     <h2>Siapkan admin pertama</h2>
     <p class="muted kecil" style="margin:0">Belum ada admin. Buat password untuk akun admin (<b>AJM</b>).
       Setelah ini, admin bisa membuat akun untuk SDO lain di tab Data SDO.</p>
@@ -337,7 +436,7 @@
   </form>
 </div>
 
-<div class="overlay hidden" id="overlay"><div id="overlayText">Memproses…</div></div>
+<div class="overlay hidden" id="overlay"><div><span class="putar"></span><span id="overlayText">Memproses…</span></div></div>
 
 <script>
 const BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
