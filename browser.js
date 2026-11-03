@@ -47,7 +47,7 @@ function hapusSesi() {
 
 async function token() {
   const s = S.sesi || bacaSesi();
-  if (!s) throw gagal(401, "Silakan login.");
+  if (!s) throw gagal(401, "Silakan masuk terlebih dahulu.");
   if (s.expires_at && s.expires_at - 60 > Date.now() / 1000) return s.access_token;
   try {
     const baru = await sb("/auth/v1/token?grant_type=refresh_token",
@@ -56,7 +56,7 @@ async function token() {
     return baru.access_token;
   } catch (e) {
     hapusSesi();
-    throw gagal(401, "Sesi berakhir, silakan login lagi.");
+    throw gagal(401, "Sesi telah berakhir. Silakan masuk kembali.");
   }
 }
 
@@ -92,7 +92,7 @@ let pySiap = null;
 function python() {
   if (!pySiap) {
     pySiap = (async () => {
-      tampilStatus("Menyiapkan aplikasi (pertama kali ±20 detik)…");
+      tampilStatus("Menyiapkan aplikasi (pemuatan pertama memerlukan sekitar 20 detik)…");
       if (!window.loadPyodide) {
         await new Promise((ok, err) => {
           const s = document.createElement("script");
@@ -133,7 +133,7 @@ async function profil() {
   if (!S.profil) {
     const user = await sb("/auth/v1/user");
     const rows = await sb(`/rest/v1/sdo?select=kode,nama,admin&user_id=eq.${q(user.id)}`);
-    if (!rows.length) throw gagal(403, "Akun ini belum terhubung ke SDO mana pun. Hubungi admin.");
+    if (!rows.length) throw gagal(403, "Akun ini belum terhubung dengan data SDO. Silakan hubungi admin.");
     S.profil = rows[0];
   }
   return S.profil;
@@ -216,7 +216,7 @@ async function infoTemplate() {
 
 async function siapkanTemplate() {
   if (!(await infoTemplate())) {
-    throw gagal(400, "Template laporan belum diupload. Admin perlu mengupload template .xlsx di tab Data SDO.");
+    throw gagal(400, "Template laporan belum tersedia. Admin perlu mengunggah template .xlsx melalui menu Data SDO.");
   }
   const { py } = await python();
   if (!S.templateDiFS) {
@@ -321,7 +321,7 @@ export async function api(path, body = {}) {
       simpanSesi(await sb("/auth/v1/token?grant_type=password",
         { method: "POST", body: { email: emailSdo(kode), password: data.password || "" }, auth: false }));
     } catch (e) {
-      throw gagal(401, e.status >= 500 ? "Server login sedang bermasalah, coba lagi." : "Kode SDO atau password salah.");
+      throw gagal(401, e.status >= 500 ? "Layanan masuk sedang mengalami gangguan. Silakan coba kembali." : "Kode SDO atau kata sandi tidak sesuai.");
     }
     return { ok: true };
   }
@@ -333,8 +333,8 @@ export async function api(path, body = {}) {
   }
 
   if (p === "/api/siapkan_admin") {
-    if (await rpc("ada_admin", {}, false)) throw gagal(400, "Admin sudah ada.");
-    if ((data.password || "").length < 8) throw gagal(400, "Password minimal 8 karakter.");
+    if (await rpc("ada_admin", {}, false)) throw gagal(400, "Akun admin sudah tersedia.");
+    if ((data.password || "").length < 8) throw gagal(400, "Kata sandi minimal 8 karakter.");
     const kode = await rpc("siapkan_admin", { p_password: data.password }, false);
     return api("/api/login", { kode, password: data.password });
   }
@@ -343,6 +343,7 @@ export async function api(path, body = {}) {
   const pr = await profil();
 
   if (p === "/api/ganti_password") {
+    if ((data.password || "").length < 8) throw gagal(400, "Kata sandi minimal 8 karakter.");
     await rpc("ganti_password_saya", { p_password: data.password || "" });
     return { ok: true };
   }
@@ -410,7 +411,7 @@ export async function api(path, body = {}) {
     return JSON.parse(await panggil("kandidat", JSON.stringify(await argsPy(kode, { periode: data.periode }))));
   }
 
-  const wajibAdmin = () => { if (!pr.admin) throw gagal(403, "Hanya admin yang boleh melakukan ini."); };
+  const wajibAdmin = () => { if (!pr.admin) throw gagal(403, "Tindakan ini hanya dapat dilakukan oleh admin."); };
 
   if (p === "/api/master/simpan") {
     wajibAdmin();
@@ -446,8 +447,8 @@ export async function api(path, body = {}) {
 
   if (p === "/api/sdo/simpan") {
     const kode = String(data.kode || "").trim().toUpperCase();
-    if (!/^[A-Z0-9]{2,8}$/.test(kode)) throw gagal(400, "Kode SDO harus 2-8 huruf/angka, mis. AJM.");
-    if (!pr.admin && kode !== pr.kode) throw gagal(403, "Hanya boleh mengubah data sendiri.");
+    if (!/^[A-Z0-9]{2,8}$/.test(kode)) throw gagal(400, "Kode SDO terdiri atas 2–8 huruf atau angka, contoh: AJM.");
+    if (!pr.admin && kode !== pr.kode) throw gagal(403, "Anda hanya dapat mengubah data milik sendiri.");
     const semua = await daftarSdo(true);
     if (!(kode in semua)) {
       wajibAdmin();
@@ -472,13 +473,14 @@ export async function api(path, body = {}) {
 
   if (p === "/api/sdo/akun") {
     wajibAdmin();
+    if ((data.password || "").length < 8) throw gagal(400, "Kata sandi minimal 8 karakter.");
     await rpc("atur_akun_sdo", { p_kode: String(data.kode || ""), p_password: data.password || "" });
     return { sdo: daftarUntukGui(await daftarSdo(true)) };
   }
 
   if (p === "/api/sdo/ttd") {
     const kode = String(data.kode || "");
-    if (!pr.admin && kode !== pr.kode) throw gagal(403, "Hanya boleh mengubah tanda tangan sendiri.");
+    if (!pr.admin && kode !== pr.kode) throw gagal(403, "Anda hanya dapat mengubah tanda tangan milik sendiri.");
     if (data.data) {
       const { py } = await python();
       py.FS.writeFile("/tmp/ttd_masuk", bytesDariDataUrl(data.data));
@@ -497,7 +499,7 @@ export async function api(path, body = {}) {
   if (p === "/api/template/simpan") {
     wajibAdmin();
     const bin = bytesDariDataUrl(data.data || "");
-    if (bin[0] !== 0x50 || bin[1] !== 0x4b) throw gagal(400, "File harus berupa .xlsx.");
+    if (bin[0] !== 0x50 || bin[1] !== 0x4b) throw gagal(400, "Berkas harus berformat .xlsx.");
     await sb("/rest/v1/berkas", { method: "POST",
       body: { nama: "template", isi_base64: data.data.split(",", 2)[1], diubah: new Date().toISOString() },
       headers: { Prefer: "resolution=merge-duplicates,return=minimal" } });
