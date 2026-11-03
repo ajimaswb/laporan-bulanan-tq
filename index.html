@@ -167,8 +167,8 @@
   svg { stroke: currentColor; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 
   /* kerangka */
-  .shell { display: grid; grid-template-columns: 224px minmax(0, 1fr); grid-template-rows: auto 1fr; gap: 16px;
-           padding: 16px; max-width: 1440px; margin: 0 auto; min-height: 100vh; }
+  .shell { display: grid; grid-template-columns: 236px minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: 16px;
+           padding: 16px; height: 100vh; height: 100dvh; }
   .topbar, .samping, main { background: var(--panel); border: 1px solid var(--panel-line); border-radius: 16px;
                             -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); }
 
@@ -191,8 +191,7 @@
   .pengguna span:not(.avatar) { display: block; font-size: 12px; color: var(--muted); }
 
   /* menu samping */
-  .samping { position: sticky; top: 16px; align-self: start; height: calc(100vh - 32px); display: flex;
-             flex-direction: column; justify-content: space-between; padding: 12px; }
+  .samping { min-height: 0; overflow-y: auto; display: flex; flex-direction: column; justify-content: space-between; padding: 12px; }
   .samping .tabs, .samping-bawah { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; background: none; }
   .tab, .tab-aksi { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: none; background: none;
                     border-radius: 10px; padding: 10px 12px; color: var(--text); font-weight: 600; font-size: 14px;
@@ -204,7 +203,7 @@
   .tab.aktif .badge { background: #fff; color: var(--accent); }
 
   /* panel konten */
-  .konten { min-width: 0; }
+  .konten { min-width: 0; min-height: 0; overflow-y: auto; border-radius: 16px; overscroll-behavior: contain; }
   main { max-width: none; margin: 0; padding: 24px 28px 32px; display: grid; gap: 20px; align-content: start;
          grid-template-columns: minmax(0, 1fr); min-height: 100%; }
   main > *, section { min-width: 0; }
@@ -305,7 +304,8 @@
   .modal form { border-radius: 16px; }
 
   @media (max-width: 960px) {
-    .shell { grid-template-columns: minmax(0, 1fr); padding: 10px; gap: 10px; }
+    .shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; padding: 10px; gap: 10px; height: auto; }
+    .konten { overflow: visible; }
     .samping { position: static; height: auto; flex-direction: row; justify-content: space-between; gap: 6px;
                padding: 6px; overflow-x: auto; }
     .samping .tabs, .samping-bawah { flex-direction: row; }
