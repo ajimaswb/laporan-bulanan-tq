@@ -365,7 +365,7 @@
     <button class="tab" data-hal="sdo"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/></svg><span>Data SDO</span><span class="badge hidden" id="badgeSdo"></span></button>
   </nav>
   <div class="samping-bawah hidden" id="akun">
-    <button class="tab-aksi" id="btnGantiPw"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Ubah kata sandi</span></button>
+    <button class="tab-aksi" id="btnGantiPw"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Ganti password</span></button>
     <button class="tab-aksi" id="btnKeluar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg><span>Keluar</span></button>
   </div>
 </aside>
@@ -375,7 +375,7 @@
   <div class="kepala">
     <div>
       <h1>Laporan bulanan</h1>
-      <p class="muted"><span id="labelPeriode">–</span> · periode berakhir setiap tanggal 25</p>
+      <p class="muted"><span id="labelPeriode">–</span> · cutoff tiap tanggal 25</p>
     </div>
     <div class="kepala-aksi" id="footer">
       <a id="btnUnduh" class="hidden" href="#"><button type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Unduh lagi</button></a>
@@ -395,7 +395,7 @@
     <button id="btnMuatUlang" title="Unduh ulang spreadsheet kehadiran dari Google Sheets"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 4v5h-5"/></svg>Muat ulang</button>
   </div>
   <div class="simpan-lokal hanya-lokal">
-    <span class="muted kecil">Lokasi penyimpanan</span>
+    <span class="muted kecil">Simpan ke</span>
     <input id="folder" placeholder="Folder output">
   </div>
   <div class="reminder hidden" id="reminder">
@@ -419,12 +419,12 @@
       <div class="stat navy"><b id="sKantor">–</b><span>Di kantor</span></div>
       <div class="stat abu"><b id="sAbsen">–</b><span>Cuti / libur</span></div>
     </div>
-    <div class="warn hidden" id="warn"><b>Perlu diperiksa</b><ul id="warnList"></ul></div>
+    <div class="warn hidden" id="warn"><b>Perlu dicek</b><ul id="warnList"></ul></div>
   </section>
 
   <section>
     <h2>Kegiatan harian</h2>
-    <p class="muted keterangan">Klik sel untuk mengubah isi. Sel berwarna biru menandakan perubahan manual; gunakan tombol <span class="ikon-sebaris"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64-6.36M3 4v5h5"/></svg></span> untuk mengembalikan nilai otomatis.</p>
+    <p class="muted keterangan">Klik sel untuk mengubah isi. Sel biru berarti sudah diubah manual; klik <span class="ikon-sebaris"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64-6.36M3 4v5h5"/></svg></span> untuk mengembalikan ke hasil otomatis.</p>
     <div class="tbl-wrap">
       <table>
         <thead><tr>
@@ -443,17 +443,17 @@
       <button id="btnTambahCopart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Tambah copart</button>
     </div>
     <div class="mandays" id="mandays"></div>
-    <p class="muted" style="margin:10px 0 0">Kosongkan kolom Mandays terpakai agar nilainya dihitung otomatis dari angka terakhir di spreadsheet (total seluruh copart). Maksimal empat copart per laporan.</p>
+    <p class="muted" style="margin:10px 0 0">Kosongkan Mandays terpakai agar dihitung otomatis dari angka terakhir di spreadsheet (total copart). Maksimal 4 copart per laporan.</p>
   </section>
 </main>
 
 <main id="pageMaster" class="hidden">
-  <div class="kepala"><div><h1>Master copart</h1><p class="muted">Daftar copart beserta lokasi dan penulisannya di spreadsheet. Digunakan bersama oleh seluruh SDO.</p></div></div>
+  <div class="kepala"><div><h1>Master copart</h1><p class="muted">Daftar copart beserta lokasi dan penulisannya di spreadsheet. Dipakai bersama oleh semua SDO.</p></div></div>
   <section>
     <h2>Copart baru di spreadsheet <span class="muted" style="font-weight:400" id="kandLabel"></span></h2>
-    <p class="muted kecil" style="margin:-6px 0 10px">Daftar nama dari seluruh implementer yang belum terdaftar di master. Lengkapi kode dan lokasi, kemudian pilih <b>Tambah</b>.
-      Apabila kode sudah terdaftar, nama tersebut ditambahkan sebagai kata kunci copart terkait. Pilih <b>Abaikan</b> apabila nama tersebut bukan copart.
-      <span class="hanya-sdo">Penambahan copart hanya dapat dilakukan oleh admin.</span></p>
+    <p class="muted kecil" style="margin:-6px 0 10px">Nama dari semua implementer yang belum terdaftar di master. Lengkapi kode dan lokasi, lalu klik <b>Tambah</b>.
+      Jika kode sudah terdaftar, nama ini ditambahkan sebagai kata kunci copart tersebut. Klik <b>Abaikan</b> jika bukan copart.
+      <span class="hanya-sdo">Hanya admin yang bisa menambahkan copart.</span></p>
     <div class="tbl-wrap">
       <table class="master">
         <thead><tr><th>Nama di spreadsheet</th><th>Contoh</th><th>Muncul</th><th>Kode</th><th>Lokasi</th><th>Standar</th><th></th></tr></thead>
@@ -471,8 +471,8 @@
         <button class="primary khusus-admin" id="btnSimpanMaster">Simpan master data</button>
       </div>
     </div>
-    <p class="muted kecil" style="margin:-4px 0 10px">Baris berwarna kuning menandakan lokasi belum diisi. Kata kunci adalah penulisan copart di spreadsheet (pisahkan dengan koma).
-      Apabila Kegiatan default dikosongkan, sistem menggunakan format “Pendampingan &lt;standar&gt; &lt;kode&gt;”.</p>
+    <p class="muted kecil" style="margin:-4px 0 10px">Baris kuning berarti lokasi belum diisi. Kata kunci adalah cara copart ditulis di spreadsheet (pisahkan dengan koma).
+      Jika Kegiatan default dikosongkan, dipakai format “Pendampingan &lt;standar&gt; &lt;kode&gt;”.</p>
     <div class="tbl-wrap">
       <table class="master">
         <thead><tr><th>Kode</th><th>Nama lengkap</th><th>Kata kunci di spreadsheet</th><th>Lokasi</th><th>Standar</th><th>Kategori</th><th>Kegiatan default</th><th></th></tr></thead>
@@ -484,7 +484,7 @@
   <section>
     <h2>Diabaikan</h2>
     <div class="chips" id="abaikan"></div>
-    <p class="muted kecil" style="margin:8px 0 0">Nama-nama berikut tidak lagi ditampilkan sebagai copart baru. Pilih ikon silang untuk mengembalikannya.</p>
+    <p class="muted kecil" style="margin:8px 0 0">Nama-nama ini tidak lagi muncul sebagai copart baru. Klik ikon silang untuk mengembalikan.</p>
   </section>
 </main>
 
@@ -492,8 +492,8 @@
   <div class="kepala"><div><h1>Data SDO</h1><p class="muted">Nama, tanda tangan, dan akun setiap SDO.</p></div></div>
   <section>
     <h2>SDO terdaftar</h2>
-    <p class="muted kecil" style="margin:-6px 0 10px">Setiap SDO memiliki nama, tanda tangan, daftar copart Laporan Mandays, dan koreksi masing-masing.
-      Laporan disusun otomatis berdasarkan kolom jadwal SDO pada spreadsheet, sedangkan master copart digunakan bersama.</p>
+    <p class="muted kecil" style="margin:-6px 0 10px">Setiap SDO punya nama, tanda tangan, daftar copart Laporan Mandays, dan koreksi masing-masing.
+      Laporan otomatis mengikuti kolom jadwal SDO di spreadsheet, sedangkan master copart dipakai bersama.</p>
     <div class="tbl-wrap">
       <table class="sdo">
         <thead><tr><th>Kode</th><th>Nama lengkap (kolom “Dibuat”)</th><th>Tanda tangan</th><th></th><th class="kolom-akun">Akun</th><th></th></tr></thead>
@@ -509,11 +509,11 @@
   </section>
   <section class="khusus-admin hidden" id="secTemplate">
     <h2>Template laporan (.xlsx)</h2>
-    <p class="muted kecil" style="margin:-6px 0 10px">Berkas FM-SDD-008 yang menjadi dasar laporan, termasuk tanda tangan penyetuju.
-      Berkas disimpan secara privat dan hanya dapat digunakan oleh SDO yang telah masuk.</p>
+    <p class="muted kecil" style="margin:-6px 0 10px">File FM-SDD-008 yang menjadi dasar laporan, termasuk tanda tangan penyetuju.
+      File disimpan secara privat dan hanya bisa dipakai oleh SDO yang sudah login.</p>
     <div class="row">
       <span id="templateStatus" class="muted"></span>
-      <button id="btnTemplate">Unggah template</button>
+      <button id="btnTemplate">Upload template</button>
       <input type="file" id="fileTemplate" accept=".xlsx" class="hidden">
     </div>
   </section>
@@ -535,19 +535,19 @@
       <div><b>Laporan Bulanan</b><span>Total Quality</span></div>
     </div>
     <form class="login-card" id="formLogin">
-      <h2>Masuk</h2>
-      <p class="muted">Masukkan kode SDO dan kata sandi yang diberikan oleh admin.</p>
+      <h2>Login</h2>
+      <p class="muted">Gunakan kode SDO dan password yang diberikan admin.</p>
       <label>Kode SDO<input id="loginKode" autocomplete="username" placeholder="Contoh: AJM" required></label>
-      <label>Kata sandi<input id="loginPw" type="password" autocomplete="current-password" required></label>
+      <label>Password<input id="loginPw" type="password" autocomplete="current-password" required></label>
       <div class="login-err" id="loginErr"></div>
-      <button class="primary" type="submit">Masuk</button>
+      <button class="primary" type="submit">Login</button>
     </form>
     <form class="login-card hidden" id="formAdminAwal">
       <h2>Siapkan admin</h2>
-      <p class="muted">Akun admin belum tersedia. Buat kata sandi untuk akun admin (<b>AJM</b>).
-        Setelah itu, admin dapat membuat akun SDO lainnya melalui menu Data SDO.</p>
-      <label>Kata sandi baru (minimal 8 karakter)<input id="adminPw" type="password" autocomplete="new-password" minlength="8" required></label>
-      <label>Konfirmasi kata sandi<input id="adminPw2" type="password" autocomplete="new-password" minlength="8" required></label>
+      <p class="muted">Akun admin belum tersedia. Buat password untuk akun admin (<b>AJM</b>).
+        Setelah itu, admin dapat membuat akun SDO lain melalui menu Data SDO.</p>
+      <label>Password baru (minimal 8 karakter)<input id="adminPw" type="password" autocomplete="new-password" minlength="8" required></label>
+      <label>Ulangi password<input id="adminPw2" type="password" autocomplete="new-password" minlength="8" required></label>
       <div class="login-err" id="adminErr"></div>
       <button class="primary" type="submit">Buat akun admin</button>
     </form>
@@ -557,9 +557,9 @@
 
 <div class="modal hidden" id="modalPw">
   <form id="formPw">
-    <b id="modalPwJudul">Kata sandi</b>
-    <input id="modalPw1" type="password" autocomplete="new-password" placeholder="Kata sandi baru (minimal 8 karakter)" minlength="8" required>
-    <input id="modalPw2" type="password" autocomplete="new-password" placeholder="Konfirmasi kata sandi" minlength="8" required>
+    <b id="modalPwJudul">Password</b>
+    <input id="modalPw1" type="password" autocomplete="new-password" placeholder="Password baru (minimal 8 karakter)" minlength="8" required>
+    <input id="modalPw2" type="password" autocomplete="new-password" placeholder="Ulangi password" minlength="8" required>
     <div class="login-err" id="modalPwErr"></div>
     <div class="row" style="justify-content:flex-end"><button type="button" id="modalPwBatal">Batal</button><button class="primary" type="submit">Simpan</button></div>
   </form>
@@ -617,7 +617,7 @@ function mintaPassword(judul) {
     $("modalPwBatal").onclick = () => { $("modalPw").classList.add("hidden"); selesai(null); };
     $("formPw").onsubmit = ev => {
       ev.preventDefault();
-      if ($("modalPw1").value !== $("modalPw2").value) { $("modalPwErr").textContent = "Konfirmasi kata sandi tidak sesuai."; return; }
+      if ($("modalPw1").value !== $("modalPw2").value) { $("modalPwErr").textContent = "Password tidak sama."; return; }
       $("modalPw").classList.add("hidden"); selesai($("modalPw1").value);
     };
   });
@@ -632,15 +632,15 @@ $("formLogin").onsubmit = async ev => {
 };
 $("formAdminAwal").onsubmit = async ev => {
   ev.preventDefault(); $("adminErr").textContent = "";
-  if ($("adminPw").value !== $("adminPw2").value) { $("adminErr").textContent = "Konfirmasi kata sandi tidak sesuai."; return; }
+  if ($("adminPw").value !== $("adminPw2").value) { $("adminErr").textContent = "Password tidak sama."; return; }
   try { await api("/api/siapkan_admin", {password: $("adminPw").value}); location.reload(); }
   catch (e) { $("adminErr").textContent = e.message; }
 };
 $("btnKeluar").onclick = async () => { await api("/api/logout", {}); try { localStorage.removeItem("sdo"); } catch (e) {} location.reload(); };
 $("btnGantiPw").onclick = async () => {
-  const pw = await mintaPassword("Ubah kata sandi");
+  const pw = await mintaPassword("Ganti password");
   if (!pw) return;
-  try { await api("/api/ganti_password", {password: pw}); alert("Kata sandi berhasil diubah."); }
+  try { await api("/api/ganti_password", {password: pw}); alert("Password berhasil diganti."); }
   catch (e) { alert("Gagal: " + e.message); }
 };
 
@@ -779,7 +779,7 @@ async function buat() {
     data = await api("/api/buat", form());
     renderTabel(data); renderMandays(data); renderStat(data);
     const sisa = data.baris.filter(b => b.ragu).length;
-    pesan((data.file ? `Laporan tersimpan di ${data.file}.` : `Laporan ${data.nama_file} siap diunduh.`) + (sisa ? ` Terdapat ${sisa} baris yang perlu diperiksa.` : ""), false);
+    pesan((data.file ? `Laporan tersimpan di ${data.file}.` : `Laporan ${data.nama_file} siap diunduh.`) + (sisa ? ` Ada ${sisa} baris yang perlu dicek.` : ""), false);
     $("btnUnduh").href = data.unduh; $("btnUnduh").setAttribute("download", data.nama_file);
     $("btnUnduh").classList.remove("hidden");
     if (status.online) $("btnUnduh").click();
@@ -792,8 +792,8 @@ async function buat() {
 function tampilReminder(r) {
   if (!r) return;
   const bagian = [];
-  if (r.copart_baru) bagian.push(`Terdapat <b>${r.copart_baru}</b> nama copart baru pada spreadsheet yang belum terdaftar di master.`);
-  if (r.template_belum) bagian.push(`Template laporan belum tersedia. Admin perlu mengunggahnya melalui menu Data SDO.`);
+  if (r.copart_baru) bagian.push(`Ada <b>${r.copart_baru}</b> nama copart baru di spreadsheet yang belum terdaftar di master.`);
+  if (r.template_belum) bagian.push(`Template laporan belum tersedia. Admin perlu meng-upload template di menu Data SDO.`);
   if (r.belum_lokasi.length) bagian.push(`<b>${r.belum_lokasi.length}</b> copart belum memiliki lokasi (${r.belum_lokasi.map(esc).join(", ")}).`);
   $("reminder").classList.toggle("hidden", !bagian.length);
   $("reminderText").innerHTML = bagian.join(" ");
@@ -907,12 +907,12 @@ async function muatSdo() {
         <td><input name="nama" value="${esc(x.nama)}" placeholder="wajib diisi" style="width:100%"></td>
         <td><div class="ttd-box">${x.ttd ? `<img src="${x.ttd_url || `/ttd/${esc(x.kode)}.png?t=${t}`}" alt="Tanda tangan ${esc(x.kode)}">` : "<span>belum ada</span>"}</div></td>
         <td style="white-space:nowrap">
-          <button class="aksiUpload">Unggah tanda tangan</button>
+          <button class="aksiUpload">Upload tanda tangan</button>
           ${x.ttd ? '<button class="aksiHapusTtd">Hapus tanda tangan</button>' : ""}
         </td>
         <td class="kolom-akun" style="white-space:nowrap">
           <span class="muted kecil">${x.admin ? "Admin" : x.akun ? "Aktif" : "Belum dibuat"}</span>
-          <button class="aksiAkun khusus-admin">${x.akun ? "Atur ulang kata sandi" : "Buat akun"}</button>
+          <button class="aksiAkun khusus-admin">${x.akun ? "Reset password" : "Buat akun"}</button>
         </td>
         <td style="white-space:nowrap" class="khusus-admin">
           <button class="aksiPakai" ${x.kode === sdo ? "disabled" : ""}>Pilih</button>
@@ -923,12 +923,12 @@ async function muatSdo() {
     $("secTemplate").classList.toggle("hidden", !r.template);
     if (r.template) {
       $("templateStatus").innerHTML = r.template.diubah
-        ? `Terunggah pada ${new Date(r.template.diubah).toLocaleString("id-ID")}`
+        ? `Sudah di-upload pada ${new Date(r.template.diubah).toLocaleString("id-ID")}`
         : '<b style="color:var(--danger)">Template belum tersedia. Laporan belum dapat dibuat.</b>';
     }
     $("sdoBelum").innerHTML = r.belum_terdaftar.length
       ? r.belum_terdaftar.map(k => `<span class="chip">${esc(k)}<button data-daftar="${esc(k)}" title="Daftarkan" aria-label="Daftarkan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button></span>`).join("")
-      : '<span class="muted kecil">Seluruh kode pada spreadsheet periode ini sudah terdaftar.</span>';
+      : '<span class="muted kecil">Semua kode di spreadsheet periode ini sudah terdaftar.</span>';
   } catch (e) { $("sdoStatus").textContent = "Gagal: " + e.message; }
 }
 
@@ -948,13 +948,13 @@ $("tbSdo").addEventListener("click", async e => {
     if (e.target.classList.contains("aksiHapusTtd")) await api("/api/sdo/ttd", {kode, data: null});
     else if (e.target.classList.contains("aksiPakai")) { await gantiSdo(kode); }
     else if (e.target.classList.contains("aksiAkun")) {
-      const pw = await mintaPassword(`Kata sandi untuk ${kode}`);
+      const pw = await mintaPassword(`Password untuk ${kode}`);
       if (!pw) return;
       await api("/api/sdo/akun", {kode, password: pw});
-      alert(`Akun ${kode} telah siap. Sampaikan kepada SDO terkait untuk masuk menggunakan kode "${kode}" dan kata sandi yang baru dibuat.`);
+      alert(`Akun ${kode} sudah siap. Informasikan ke SDO terkait untuk login dengan kode "${kode}" dan password yang baru dibuat.`);
     }
     else if (e.target.classList.contains("aksiHapusSdo")) {
-      if (!confirm(`Hapus SDO ${kode} beserta data copart dan koreksinya? Tindakan ini tidak dapat dibatalkan.`)) return;
+      if (!confirm(`Hapus SDO ${kode} beserta data copart dan koreksinya? Data yang dihapus tidak bisa dikembalikan.`)) return;
       await api("/api/sdo/hapus", {kode});
       if (kode === sdo) { sdo = null; await segarkanAwal(); await ambil(false); }
     } else return;
@@ -1019,12 +1019,12 @@ $("btnTambahMaster").onclick = () => {
 };
 $("tbMaster").addEventListener("input", e => {
   tandaiMaster(e.target.closest("tr"));
-  $("masterStatus").textContent = "Terdapat perubahan yang belum disimpan.";
+  $("masterStatus").textContent = "Ada perubahan yang belum disimpan.";
 });
 $("tbMaster").addEventListener("click", e => {
   if (!e.target.closest(".hapusMaster")) return;
   e.target.closest("tr").remove();
-  $("masterStatus").textContent = "Terdapat perubahan yang belum disimpan.";
+  $("masterStatus").textContent = "Ada perubahan yang belum disimpan.";
 });
 $("tbKandidat").addEventListener("click", async e => {
   const tr = e.target.closest("tr");
@@ -1061,7 +1061,7 @@ $("tbody").addEventListener("click", e => {
 });
 $("mandays").addEventListener("input", jadwalPratinjau);
 $("btnTambahCopart").onclick = () => {
-  if ($("mandays").children.length >= 4) return pesan("Template hanya menyediakan empat blok copart.", true);
+  if ($("mandays").children.length >= 4) return pesan("Template hanya menyediakan 4 blok copart.", true);
   $("mandays").appendChild(kartuCopart({kode: "", kuota: 60, mandays_terpakai: null, progress_step: "", laporan_singkat: ""}));
 };
 $("btnAmbil").onclick = () => ambil(false);

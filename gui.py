@@ -76,7 +76,7 @@ def simpan_master_dari_list(st, daftar):
 
 def wajib_admin(st):
     if not st.admin:
-        raise Ditolak(403, "Tindakan ini hanya dapat dilakukan oleh admin.")
+        raise Ditolak(403, "Hanya admin yang bisa melakukan ini.")
 
 
 def sdo_untuk(st, diminta):
@@ -139,7 +139,7 @@ class Handler(BaseHTTPRequestHandler):
             return pn.PenyimpananLokal(lb.BASE)
         at = self.cookie("lt_at")
         if not at:
-            raise Ditolak(401, "Silakan masuk terlebih dahulu.")
+            raise Ditolak(401, "Silakan login terlebih dahulu.")
         cache = TOKEN_OK.get(at)
         if cache and cache[1] > time.time():
             user_id = cache[0]
@@ -148,11 +148,11 @@ class Handler(BaseHTTPRequestHandler):
                 user_id = pn.user_dari_token(at)["id"]
             except pn.GagalSupabase as e:
                 if e.status not in (401, 403) or not self.cookie("lt_rt"):
-                    raise Ditolak(401, "Sesi telah berakhir. Silakan masuk kembali.") from None
+                    raise Ditolak(401, "Sesi sudah berakhir. Silakan login kembali.") from None
                 try:
                     sesi = pn.perbarui_token(self.cookie("lt_rt"))
                 except pn.GagalSupabase:
-                    raise Ditolak(401, "Sesi telah berakhir. Silakan masuk kembali.") from None
+                    raise Ditolak(401, "Sesi sudah berakhir. Silakan login kembali.") from None
                 self.simpan_sesi_login(sesi)
                 at, user_id = sesi["access_token"], sesi["user"]["id"]
             TOKEN_OK[at] = (user_id, time.time() + 60)
@@ -163,7 +163,7 @@ class Handler(BaseHTTPRequestHandler):
         daftar = [t for t in GAGAL_LOGIN.get(self.ip(), []) if sekarang - t < 300]
         GAGAL_LOGIN[self.ip()] = daftar
         if len(daftar) >= 8:
-            raise Ditolak(429, "Terlalu banyak percobaan masuk. Silakan coba kembali dalam 5 menit.")
+            raise Ditolak(429, "Terlalu banyak percobaan login. Silakan coba lagi dalam 5 menit.")
 
     # --- GET
     def do_GET(self):
@@ -192,7 +192,7 @@ class Handler(BaseHTTPRequestHandler):
             if m:
                 isi = UNDUHAN.get(m.group(1))
                 if not isi or (ONLINE and isi[2] != st.kode and not st.admin):
-                    raise Ditolak(404, "Berkas sudah kedaluwarsa. Silakan buat ulang laporan.")
+                    raise Ditolak(404, "File sudah kedaluwarsa. Silakan buat ulang laporan.")
                 return self.kirim(200, isi[0], "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                                   {"Content-Disposition": f"attachment; filename*=UTF-8''{quote(isi[1])}"})
 
@@ -259,7 +259,7 @@ class Handler(BaseHTTPRequestHandler):
                 sesi = pn.login(inti.kode_sdo(data.get("kode")), data.get("password") or "")
             except (pn.GagalSupabase, ValueError):
                 GAGAL_LOGIN.setdefault(self.ip(), []).append(time.time())
-                raise Ditolak(401, "Kode SDO atau kata sandi tidak sesuai.") from None
+                raise Ditolak(401, "Kode SDO atau password salah.") from None
             self.simpan_sesi_login(sesi)
             return self.kirim(200, {"ok": True})
         if p == "/api/logout":
@@ -271,7 +271,7 @@ class Handler(BaseHTTPRequestHandler):
                 raise Ditolak(400, "Akun admin sudah tersedia.")
             pw = data.get("password") or ""
             if len(pw) < 8:
-                raise Ditolak(400, "Kata sandi minimal 8 karakter.")
+                raise Ditolak(400, "Password minimal 8 karakter.")
             kode = pn.siapkan_admin(pw)
             self.simpan_sesi_login(pn.login(kode, pw))
             return self.kirim(200, {"ok": True, "kode": kode})
@@ -366,7 +366,7 @@ class Handler(BaseHTTPRequestHandler):
         if p == "/api/sdo/simpan":
             kode = inti.kode_sdo(data.get("kode"))
             if ONLINE and not st.admin and kode != st.kode:
-                raise Ditolak(403, "Anda hanya dapat mengubah data milik sendiri.")
+                raise Ditolak(403, "Anda hanya bisa mengubah data sendiri.")
             if kode not in st.baca_sdo():
                 wajib_admin(st)
                 st.tambah_sdo(kode, (data.get("nama") or "").strip())
@@ -392,7 +392,7 @@ class Handler(BaseHTTPRequestHandler):
         if p == "/api/sdo/ttd":
             kode = inti.kode_sdo(data.get("kode"))
             if ONLINE and not st.admin and kode != st.kode:
-                raise Ditolak(403, "Anda hanya dapat mengubah tanda tangan milik sendiri.")
+                raise Ditolak(403, "Anda hanya bisa mengubah tanda tangan sendiri.")
             if kode not in st.baca_sdo():
                 raise ValueError(f"SDO {kode} belum terdaftar.")
             st.simpan_ttd(kode, inti.olah_ttd(inti.dari_data_url(data["data"])) if data.get("data") else None)

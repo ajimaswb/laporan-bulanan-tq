@@ -70,7 +70,7 @@ def ke_json(cfg, lap, keh, diunduh):
 def kode_sdo(teks):
     kode = lb.norm(teks)
     if not re.fullmatch(r"[A-Z0-9]{2,8}", kode):
-        raise ValueError("Kode SDO terdiri atas 2–8 huruf atau angka, contoh: AJM.")
+        raise ValueError("Kode SDO harus 2–8 huruf atau angka, contoh: AJM.")
     return kode
 
 
@@ -124,7 +124,7 @@ def master_dari_list(master, daftar):
         if not kode:
             continue
         if kode in baru:
-            raise ValueError(f"Kode {kode} tercatat lebih dari satu kali di master.")
+            raise ValueError(f"Kode {kode} dobel di master.")
         dasar = dict(lama.get(row.get("kode_asal") or kode, {}))
         dasar.update({f: row.get(f) for f in FIELD_MASTER if f in row})
         baru[kode] = bersihkan(dasar)
