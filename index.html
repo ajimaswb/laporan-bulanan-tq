@@ -542,6 +542,13 @@
       <div class="login-err" id="loginErr"></div>
       <button class="primary" type="submit">Login</button>
     </form>
+    <div class="login-card hidden" id="kartuGangguan">
+      <h2>Server tidak bisa dihubungi</h2>
+      <p class="muted">Database aplikasi sedang tidak aktif atau koneksi internet terputus. Data Anda tetap aman.
+        Coba lagi beberapa saat lagi; jika masih berlanjut, hubungi admin.</p>
+      <p class="muted kecil" id="gangguanDetail"></p>
+      <button class="primary" type="button" id="btnCobaLagi">Coba lagi</button>
+    </div>
     <form class="login-card hidden" id="formAdminAwal">
       <h2>Siapkan admin</h2>
       <p class="muted">Akun admin belum tersedia. Buat password untuk akun admin (<b>AJM</b>).
@@ -599,10 +606,22 @@ async function api(path, body) {
 
 // --- login & akun
 let status = null;
+function tampilGangguan(e) {
+  sibuk(null);
+  document.body.classList.remove("memuat");
+  $("login").classList.remove("hidden");
+  $("formLogin").classList.add("hidden");
+  $("formAdminAwal").classList.add("hidden");
+  $("kartuGangguan").classList.remove("hidden");
+  $("gangguanDetail").textContent = e && e.message ? `Detail: ${e.message}` : "";
+}
+$("btnCobaLagi").onclick = () => location.reload();
+
 function tampilLogin() {
   sibuk(null);
   document.body.classList.remove("memuat");
   $("login").classList.remove("hidden");
+  $("kartuGangguan").classList.add("hidden");
   const awalAdmin = status && status.perlu_admin_awal;
   $("formLogin").classList.toggle("hidden", !!awalAdmin);
   $("formAdminAwal").classList.toggle("hidden", !awalAdmin);
@@ -1072,7 +1091,11 @@ $("btnBuka").onclick = () => api("/api/buka", {periode: periode(), sdo}).catch(e
 $("btnFinder").onclick = () => api("/api/buka", {periode: periode(), sdo, finder: true}).catch(e => pesan(e.message, true));
 
 (async () => {
-  status = await api("/api/status");
+  try {
+    status = await api("/api/status");
+  } catch (e) {
+    return tampilGangguan(e);
+  }
   if (!status.login) return tampilLogin();
   document.body.classList.remove("memuat");
   const L = status.login;
