@@ -3,6 +3,8 @@
   "template": "template/template_FM-SDD-008.xlsx",
   "folder_output": "output",
   "tanggal_cutoff": 25,
+  "_catatan_kosong": "Hari kerja yang kosong di spreadsheet jadwal dianggap masuk ke copart ini (kosongkan untuk menandai kuning).",
+  "kosong_dianggap": "TQ",
   "_catatan_copart": "Kata kunci dicocokkan per kata (huruf besar/kecil diabaikan). kategori: 'kantor' = hitung sbg Mandays di Kantor; selain itu dihitung sbg copart (utama jika ada di mandays_copart, sisanya 'copart lain/non-mandays').",
   "_catatan_koreksi": "Isi manual per tanggal (YYYY-MM-DD) untuk mengganti hasil otomatis, mis. istilah kegiatan di TQ. Field yang bisa diisi: copart, kegiatan, ket. Hari yang hanya tertulis 'TQ' diberi warna kuning sampai dikoreksi di sini.",
   "_catatan_absen": "Hari kerja yang isinya cocok dengan kata kunci ini ditulis Co-Part '-' dan Keterangan '-', tidak dihitung mandays.",

@@ -177,7 +177,13 @@ class Klasifikasi:
     def kegiatan(self, teks: str):
         """-> dict(copart, kegiatan, ket, kategori, ragu)"""
         if not teks:
-            return dict(copart="?", kegiatan="(kosong di spreadsheet)", ket="?", kategori="?", ragu=True)
+            # Hari kerja yang kosong di jadwal dianggap masuk kantor (config: kosong_dianggap, mis. "TQ")
+            kode = self.cfg.get("kosong_dianggap")
+            c = self.cfg["copart"].get(kode) if kode else None
+            if not c:
+                return dict(copart="?", kegiatan="(kosong di spreadsheet)", ket="?", kategori="?", ragu=True)
+            return dict(copart=kode, kegiatan=c.get("kegiatan_default") or f"Kantor {kode}",
+                        ket=c.get("lokasi") or "?", kategori=c.get("kategori", "copart"), ragu=not c.get("lokasi"))
         for kunci, label in self.cfg["absen"].items():
             if re.search(rf"\b{kunci}\b", teks):
                 return dict(copart="-", kegiatan=label, ket="-", kategori="absen", ragu=False)
