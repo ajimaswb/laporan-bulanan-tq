@@ -267,6 +267,8 @@
   input.diubah { background: var(--accent-soft); border-color: transparent; color: var(--accent); font-weight: 700; }
   td.no { color: var(--muted); }
   td.sumber { font-family: var(--font); font-size: 12px; }
+  td.sumber input { font-size: 12px; color: var(--muted); text-transform: uppercase; }
+  td.sumber input.diubah { color: var(--accent); }
   td.hari.senin { color: var(--text); }
   #pageMaster td input, #pageMaster td select, #pageSdo td input { background: var(--card); border-color: var(--line); }
 
@@ -774,7 +776,7 @@ function renderTabel(d) {
       <td class="no">${i + 1}</td>
       <td class="hari ${b.hari === "Monday" ? "senin" : ""}">${b.hari}</td>
       <td class="tgl">${fmtTgl(b.tanggal)}</td>
-      <td class="sumber">${esc(b.teks) || "<i>(kosong)</i>"}</td>
+      <td class="sumber"><input name="teks" value="${esc(b.teks)}" data-auto="${esc(b.teks_asli ?? b.teks)}" placeholder="(kosong)" title="Teks di jadwal. Ubah untuk membaca ulang baris ini."></td>
       <td class="copart"><input name="copart" list="dlCopart" value="${esc(b.copart)}" data-auto="${esc(b.auto.copart)}"></td>
       <td><input name="kegiatan" value="${esc(b.kegiatan)}" data-auto="${esc(b.auto.kegiatan)}"></td>
       <td class="ket"><input name="ket" value="${esc(b.ket)}" data-auto="${esc(b.auto.ket)}"></td>
@@ -822,9 +824,11 @@ function form() {
     folder_output: $("folder").value.trim(),
     baris: [...$("tbody").querySelectorAll("tr[data-tgl]")].map(tr => ({
       tanggal: tr.dataset.tgl,
-      copart: tr.querySelector("[name=copart]").value,
-      kegiatan: tr.querySelector("[name=kegiatan]").value,
-      ket: tr.querySelector("[name=ket]").value,
+      teks: tr.querySelector("[name=teks]").value,
+      // teks jadwal baru diubah: biarkan server membaca ulang Co-Part/Kegiatan/Keterangan
+      copart: tr.dataset.teksBaru ? null : tr.querySelector("[name=copart]").value,
+      kegiatan: tr.dataset.teksBaru ? null : tr.querySelector("[name=kegiatan]").value,
+      ket: tr.dataset.teksBaru ? null : tr.querySelector("[name=ket]").value,
     })),
     mandays_copart: [...$("mandays").children].map(el => {
       const v = n => el.querySelector(`[name=${n}]`).value;
@@ -848,6 +852,18 @@ async function ambil(muatUlang = false) {
     $("btnBuka").classList.add("hidden"); $("btnFinder").classList.add("hidden");
   } catch (e) { pesan(e.message, true); }
   sibuk(null);
+}
+
+// Teks jadwal diubah: hitung ulang dan gambar ulang tabel (fokus & posisi gulir dipertahankan)
+async function bacaUlang() {
+  const aktif = document.activeElement;
+  const fokus = aktif && aktif.closest && aktif.closest("tr[data-tgl]")
+    ? {tgl: aktif.closest("tr").dataset.tgl, nama: aktif.name} : null;
+  try {
+    data = await api("/api/pratinjau", form());
+    renderTabel(data); renderStat(data);
+    if (fokus) document.querySelector(`tr[data-tgl="${fokus.tgl}"] [name=${fokus.nama}]`)?.focus();
+  } catch (e) { toast(e.message, "galat", "Gagal membaca ulang"); }
 }
 
 function jadwalPratinjau() {
@@ -1132,8 +1148,12 @@ $("abaikan").addEventListener("click", async e => {
   await api("/api/master/abaikan", {frasa: btn.dataset.frasa, batal: true});
   await setelahMasterBerubah();
 });
+$("tbody").addEventListener("change", e => {
+  if (e.target.name === "teks") bacaUlang();
+});
 $("tbody").addEventListener("input", e => {
   const tr = e.target.closest("tr");
+  if (e.target.name === "teks") { tr.dataset.teksBaru = "1"; tandaiBaris(tr); return; }
   if (e.target.name === "copart" && awal.lokasi[e.target.value.trim().toUpperCase()]) {
     tr.querySelector("[name=ket]").value = awal.lokasi[e.target.value.trim().toUpperCase()];
   }
@@ -1142,8 +1162,11 @@ $("tbody").addEventListener("input", e => {
 $("tbody").addEventListener("click", e => {
   if (!e.target.closest(".reset")) return;
   const tr = e.target.closest("tr");
+  const teks = tr.querySelector("[name=teks]");
+  const teksBerubah = teks.value.trim().toUpperCase() !== teks.dataset.auto;
   tr.querySelectorAll("input").forEach(inp => inp.value = inp.dataset.auto);
-  tandaiBaris(tr); jadwalPratinjau();
+  tandaiBaris(tr);
+  if (teksBerubah) { tr.dataset.teksBaru = "1"; bacaUlang(); } else jadwalPratinjau();
 });
 $("mandays").addEventListener("input", jadwalPratinjau);
 $("btnTambahCopart").onclick = () => {

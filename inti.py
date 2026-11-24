@@ -24,14 +24,21 @@ def terapkan_form(cfg, keh, awal, akhir, data, boleh_folder=False):
     if boleh_folder and folder and Path(folder).expanduser() != lb.folder_output(cfg):
         cfg2["folder_output"] = folder
     if "baris" in data:
-        auto = {b["tanggal"].isoformat(): b["auto"] for b in lb.susun_laporan(cfg2, keh, awal, akhir)["baris"]}
+        asli = {b["tanggal"].isoformat(): b["teks_asli"] for b in lb.susun_laporan(cfg2, keh, awal, akhir)["baris"]}
+        kls = lb.Klasifikasi(cfg2)
         koreksi = cfg2.setdefault("koreksi", {})
         for row in data["baris"]:
             tgl = row["tanggal"]
-            if tgl not in auto:
+            if tgl not in asli:
                 continue
-            beda = {k: row[k].strip() for k in ("copart", "kegiatan", "ket")
-                    if row.get(k) is not None and row[k].strip() != auto[tgl][k]}
+            beda = {}
+            teks = asli[tgl]
+            if row.get("teks") is not None and lb.norm(row["teks"]) != asli[tgl]:
+                teks = beda["teks"] = lb.norm(row["teks"])
+            b = kls.kegiatan(teks)
+            # nilai None = pakai hasil otomatis (dikirim saat teks jadwal baru saja diubah)
+            beda.update({k: row[k].strip() for k in ("copart", "kegiatan", "ket")
+                         if row.get(k) is not None and row[k].strip() != b[k]})
             if beda:
                 koreksi[tgl] = beda
             else:
@@ -54,7 +61,7 @@ def ke_json(cfg, lap, keh, diunduh):
         "baris": [{
             "tanggal": b["tanggal"].isoformat(),
             "hari": lb.HARI_EN[b["tanggal"].weekday()],
-            "teks": b["teks"],
+            "teks": b["teks"], "teks_asli": b.get("teks_asli", b["teks"]),
             "copart": b["copart"], "kegiatan": b["kegiatan"], "ket": b["ket"],
             "auto": b["auto"], "ragu": b["ragu"], "kategori": b["kategori"],
         } for b in lap["baris"]],

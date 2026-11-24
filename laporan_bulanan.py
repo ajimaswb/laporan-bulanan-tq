@@ -478,19 +478,22 @@ def susun_laporan(cfg, keh: Kehadiran, awal, akhir) -> dict:
     baris = []
     tgl = awal
     while tgl <= akhir:
-        teks = keh.hari(tgl).get(kode_imp, "")
+        teks_asli = keh.hari(tgl).get(kode_imp, "")
         if tgl.weekday() < 5:
+            kor = cfg.get("koreksi", {}).get(tgl.isoformat(), {})
+            # koreksi "teks" = teks jadwal diketik ulang; hasil otomatis dihitung dari teks itu
+            teks = norm(kor["teks"]) if "teks" in kor else teks_asli
             b = kls.kegiatan(teks)
             b["auto"] = {k: b[k] for k in ("copart", "kegiatan", "ket")}
-            b["dikoreksi"] = tgl.isoformat() in cfg.get("koreksi", {})
-            if b["dikoreksi"]:
-                kls.koreksi(b, cfg["koreksi"][tgl.isoformat()])
-            b["tanggal"], b["teks"] = tgl, teks
+            b["dikoreksi"] = bool(kor)
+            if any(k in kor for k in ("copart", "kegiatan", "ket")):
+                kls.koreksi(b, kor)
+            b["tanggal"], b["teks"], b["teks_asli"] = tgl, teks, teks_asli
             baris.append(b)
             if b["ragu"]:
                 peringatan.append(f"{tgl:%d-%m-%Y}: '{teks}' perlu dicek")
-        elif teks:
-            peringatan.append(f"{tgl:%d-%m-%Y} (akhir pekan, tidak masuk laporan): '{teks}'")
+        elif teks_asli:
+            peringatan.append(f"{tgl:%d-%m-%Y} (akhir pekan, tidak masuk laporan): '{teks_asli}'")
         tgl += dt.timedelta(days=1)
 
     # Mandays terpakai: angka terakhir yang tercatat utk copart tsb (semua implementer)
