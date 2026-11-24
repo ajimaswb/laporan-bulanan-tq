@@ -340,6 +340,30 @@
     .reminder > span:not(.ikon) { flex: 1 1 calc(100% - 44px); }
     .reminder button { margin-left: 44px; }
   }
+
+  /* notifikasi (toast) & dialog konfirmasi */
+  .toast-wadah { position: fixed; right: 20px; bottom: 20px; z-index: 60; display: grid; gap: 10px; width: min(380px, calc(100vw - 32px)); }
+  .toast { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 12px; background: var(--card);
+           border: 1px solid var(--line); box-shadow: 0 12px 32px rgba(20, 20, 40, .16); font-size: 14px;
+           animation: toast-masuk .18s ease-out; }
+  .toast.keluar { animation: toast-keluar .18s ease-in forwards; }
+  .toast .ikon-t { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; flex: none; }
+  .toast .ikon-t svg { width: 16px; height: 16px; stroke-width: 2.4; }
+  .toast.sukses .ikon-t { background: color-mix(in srgb, #12804A 14%, transparent); color: #12804A; }
+  .toast.galat .ikon-t { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+  .toast.info .ikon-t { background: var(--accent-soft); color: var(--accent); }
+  .toast b { display: block; margin-bottom: 2px; }
+  .toast .isi-t { flex: 1; line-height: 1.45; }
+  .toast .tutup-t { border: none; background: none; padding: 2px; color: var(--muted); }
+  .toast .tutup-t svg { width: 14px; height: 14px; }
+  @keyframes toast-masuk { from { opacity: 0; transform: translateY(8px); } }
+  @keyframes toast-keluar { to { opacity: 0; transform: translateY(8px); } }
+  .dialog-k { width: min(400px, 100%); background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+              padding: 22px; display: grid; gap: 10px; box-shadow: 0 20px 50px rgba(20, 20, 40, .2); }
+  .dialog-k h3 { margin: 0; font-size: 17px; font-weight: 800; }
+  .dialog-k p { margin: 0; color: var(--muted); line-height: 1.5; }
+  .dialog-k .aksi-k { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+  button.bahaya { background: var(--danger); border-color: var(--danger); color: #fff; }
 </style>
 </head>
 <body class="memuat">
@@ -572,6 +596,15 @@
   </form>
 </div>
 
+<div class="toast-wadah" id="toastWadah" aria-live="polite"></div>
+<div class="modal hidden" id="modalKonfirmasi">
+  <div class="dialog-k" role="dialog" aria-modal="true">
+    <h3 id="konfJudul"></h3>
+    <p id="konfPesan"></p>
+    <div class="aksi-k"><button type="button" id="konfBatal">Batal</button><button type="button" class="primary" id="konfOk">Ya</button></div>
+  </div>
+</div>
+
 <div class="overlay hidden" id="overlay"><div><span class="putar"></span><span id="overlayText">Memproses…</span></div></div>
 
 <script>
@@ -662,9 +695,40 @@ $("btnKeluar").onclick = async () => { await api("/api/logout", {}); try { local
 $("btnGantiPw").onclick = async () => {
   const pw = await mintaPassword("Ganti password");
   if (!pw) return;
-  try { await api("/api/ganti_password", {password: pw}); alert("Password berhasil diganti."); }
-  catch (e) { alert("Gagal: " + e.message); }
+  try { await api("/api/ganti_password", {password: pw}); toast("Password berhasil diganti."); }
+  catch (e) { toast(e.message, "galat", "Gagal mengganti password"); }
 };
+
+const IKON_T = {
+  sukses: '<svg viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7"/></svg>',
+  galat: '<svg viewBox="0 0 24 24"><path d="M12 8v5M12 16.5v.01"/><circle cx="12" cy="12" r="9"/></svg>',
+  info: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.01"/></svg>',
+};
+function toast(pesan, jenis = "sukses", judul = "") {
+  const el = document.createElement("div");
+  el.className = `toast ${jenis}`;
+  el.setAttribute("role", jenis === "galat" ? "alert" : "status");
+  el.innerHTML = `<span class="ikon-t">${IKON_T[jenis] || IKON_T.info}</span>
+    <div class="isi-t">${judul ? `<b>${esc(judul)}</b>` : ""}${esc(pesan)}</div>
+    <button class="tutup-t" aria-label="Tutup"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`;
+  const tutup = () => { el.classList.add("keluar"); setTimeout(() => el.remove(), 180); };
+  el.querySelector(".tutup-t").onclick = tutup;
+  $("toastWadah").appendChild(el);
+  setTimeout(tutup, jenis === "galat" ? 7000 : 5000);
+}
+function konfirmasi(judul, pesan, labelOk = "Ya", bahaya = false) {
+  return new Promise(selesai => {
+    $("konfJudul").textContent = judul;
+    $("konfPesan").textContent = pesan;
+    $("konfOk").textContent = labelOk;
+    $("konfOk").className = bahaya ? "bahaya" : "primary";
+    $("modalKonfirmasi").classList.remove("hidden");
+    $("konfOk").focus();
+    const akhiri = hasil => { $("modalKonfirmasi").classList.add("hidden"); selesai(hasil); };
+    $("konfOk").onclick = () => akhiri(true);
+    $("konfBatal").onclick = () => akhiri(false);
+  });
+}
 
 function sibuk(teks) {
   $("overlayText").textContent = teks || "";
@@ -874,7 +938,7 @@ async function muatMaster() {
       ? m.abaikan.map(a => `<span class="chip">${esc(a)}<button title="Kembalikan ke daftar copart baru" aria-label="Kembalikan" data-frasa="${esc(a)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></span>`).join("")
       : `<span class="muted kecil">Belum ada nama yang diabaikan.</span>`;
     $("masterStatus").textContent = "";
-  } catch (e) { alert(e.message); }
+  } catch (e) { toast(e.message, "galat", "Gagal memuat master copart"); }
 }
 
 function barisMaster(c) {
@@ -907,8 +971,8 @@ async function simpanMaster() {
   try {
     await api("/api/master/simpan", {copart});
     await setelahMasterBerubah();
-    $("masterStatus").textContent = "Perubahan tersimpan.";
-  } catch (e) { $("masterStatus").textContent = "Gagal: " + e.message; }
+    $("masterStatus").textContent = ""; toast("Master copart tersimpan.");
+  } catch (e) { $("masterStatus").textContent = ""; toast(e.message, "galat", "Gagal menyimpan"); }
 }
 
 async function setelahMasterBerubah() {
@@ -951,7 +1015,7 @@ async function muatSdo() {
     $("sdoBelum").innerHTML = r.belum_terdaftar.length
       ? r.belum_terdaftar.map(k => `<span class="chip">${esc(k)}<button data-daftar="${esc(k)}" title="Daftarkan" aria-label="Daftarkan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button></span>`).join("")
       : '<span class="muted kecil">Semua kode di spreadsheet periode ini sudah terdaftar.</span>';
-  } catch (e) { $("sdoStatus").textContent = "Gagal: " + e.message; }
+  } catch (e) { toast(e.message, "galat", "Gagal"); }
 }
 
 async function gantiSdo(kode) {
@@ -973,24 +1037,24 @@ $("tbSdo").addEventListener("click", async e => {
       const pw = await mintaPassword(`Password untuk ${kode}`);
       if (!pw) return;
       await api("/api/sdo/akun", {kode, password: pw});
-      alert(`Akun ${kode} sudah siap. Informasikan ke SDO terkait untuk login dengan kode "${kode}" dan password yang baru dibuat.`);
+      toast(`Informasikan ke SDO terkait untuk login dengan kode ${kode} dan password yang baru dibuat.`, "sukses", `Akun ${kode} sudah siap`);
     }
     else if (e.target.classList.contains("aksiHapusSdo")) {
-      if (!confirm(`Hapus SDO ${kode} beserta data copart dan koreksinya? Data yang dihapus tidak bisa dikembalikan.`)) return;
+      if (!(await konfirmasi(`Hapus SDO ${kode}?`, "Data copart, koreksi, tanda tangan, dan akun login SDO ini ikut terhapus dan tidak bisa dikembalikan.", "Hapus", true))) return;
       await api("/api/sdo/hapus", {kode});
       if (kode === sdo) { sdo = null; await segarkanAwal(); await ambil(false); }
     } else return;
-    await segarkanAwal(); await muatSdo(); $("sdoStatus").textContent = "Perubahan tersimpan.";
-  } catch (err) { $("sdoStatus").textContent = "Gagal: " + err.message; }
+    await segarkanAwal(); await muatSdo(); toast("Perubahan tersimpan.");
+  } catch (err) { toast(err.message, "galat", "Gagal"); }
 });
 $("tbSdo").addEventListener("change", async e => {
   if (e.target.name !== "nama") return;
   const kode = e.target.closest("tr").dataset.kode;
   try {
     await api("/api/sdo/simpan", {kode, nama: e.target.value});
-    await segarkanAwal(); $("sdoStatus").textContent = `Nama ${kode} tersimpan.`;
+    await segarkanAwal(); toast(`Nama ${kode} tersimpan.`);
     if (kode === sdo) jadwalPratinjau();
-  } catch (err) { $("sdoStatus").textContent = "Gagal: " + err.message; }
+  } catch (err) { toast(err.message, "galat", "Gagal"); }
 });
 $("fileTtd").addEventListener("change", () => {
   const f = $("fileTtd").files[0];
@@ -999,9 +1063,9 @@ $("fileTtd").addEventListener("change", () => {
   rd.onload = async () => {
     try {
       await api("/api/sdo/ttd", {kode: ttdUntuk, data: rd.result});
-      await segarkanAwal(); await muatSdo(); $("sdoStatus").textContent = `Tanda tangan ${ttdUntuk} tersimpan.`;
+      await segarkanAwal(); await muatSdo(); toast(`Tanda tangan ${ttdUntuk} tersimpan.`);
       if (ttdUntuk === sdo) jadwalPratinjau();
-    } catch (err) { $("sdoStatus").textContent = "Gagal: " + err.message; }
+    } catch (err) { toast(err.message, "galat", "Gagal"); }
   };
   rd.readAsDataURL(f);
 });
@@ -1009,14 +1073,14 @@ $("btnSdoBaru").onclick = async () => {
   try {
     await api("/api/sdo/simpan", {kode: $("sdoBaruKode").value, nama: $("sdoBaruNama").value});
     $("sdoBaruKode").value = ""; $("sdoBaruNama").value = "";
-    await segarkanAwal(); await muatSdo(); $("sdoStatus").textContent = "SDO berhasil ditambahkan.";
-  } catch (err) { $("sdoStatus").textContent = "Gagal: " + err.message; }
+    await segarkanAwal(); await muatSdo(); toast("SDO berhasil ditambahkan.");
+  } catch (err) { toast(err.message, "galat", "Gagal"); }
 };
 $("sdoBelum").addEventListener("click", async e => {
   const kode = e.target.closest("[data-daftar]")?.dataset.daftar;
   if (!kode) return;
   await api("/api/sdo/simpan", {kode});
-  await segarkanAwal(); await muatSdo(); $("sdoStatus").textContent = `${kode} berhasil didaftarkan. Lengkapi nama dan tanda tangan.`;
+  await segarkanAwal(); await muatSdo(); toast(`${kode} berhasil didaftarkan. Lengkapi nama dan tanda tangan.`);
 });
 $("pilihSdo").onchange = () => gantiSdo($("pilihSdo").value);
 $("btnTemplate").onclick = () => { $("fileTemplate").value = ""; $("fileTemplate").click(); };
@@ -1025,8 +1089,8 @@ $("fileTemplate").addEventListener("change", () => {
   if (!f) return;
   const rd = new FileReader();
   rd.onload = async () => {
-    try { await api("/api/template/simpan", {data: rd.result}); await muatSdo(); $("sdoStatus").textContent = "Template berhasil disimpan."; }
-    catch (err) { $("sdoStatus").textContent = "Gagal: " + err.message; }
+    try { await api("/api/template/simpan", {data: rd.result}); await muatSdo(); toast("Template berhasil disimpan."); }
+    catch (err) { toast(err.message, "galat", "Gagal"); }
   };
   rd.readAsDataURL(f);
 });
@@ -1054,13 +1118,13 @@ $("tbKandidat").addEventListener("click", async e => {
   const v = n => tr.querySelector(`[name=${n}]`).value.trim();
   try {
     if (e.target.classList.contains("aksiTambah")) {
-      if (!v("lokasi") && !confirm("Lokasi belum diisi. Tetap tambahkan copart ini?")) return;
+      if (!v("lokasi") && !(await konfirmasi("Lokasi belum diisi", "Copart tetap bisa ditambahkan, tapi baris laporannya akan ditandai kuning sampai lokasinya diisi.", "Tetap tambahkan"))) return;
       await api("/api/master/tambah", {frasa: tr.dataset.frasa, kode: v("kode"), lokasi: v("lokasi"), standar: v("standar")});
     } else if (e.target.classList.contains("aksiAbaikan")) {
       await api("/api/master/abaikan", {frasa: tr.dataset.frasa});
     } else return;
     await setelahMasterBerubah();
-  } catch (err) { alert(err.message); }
+  } catch (err) { toast(err.message, "galat", "Gagal"); }
 });
 $("abaikan").addEventListener("click", async e => {
   const btn = e.target.closest("[data-frasa]");
