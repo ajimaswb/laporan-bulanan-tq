@@ -8,3 +8,6 @@ ttd/
 sdo.json
 master_copart.json
 template/
+.wrangler/
+node_modules/
+.dev.vars

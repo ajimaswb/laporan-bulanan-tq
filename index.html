@@ -575,14 +575,17 @@
 <div class="overlay hidden" id="overlay"><div><span class="putar"></span><span id="overlayText">Memproses…</span></div></div>
 
 <script>
+// Alamat lama (GitHub Pages) dialihkan ke aplikasi di Cloudflare
+if (location.hostname.endsWith("github.io")) location.replace("https://laporan-bulanan-tq.aporan--ulanan.workers.dev/");
 const BULAN = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 const $ = id => document.getElementById(id);
 let awal = null, data = null, timer = null;
 let sdo = null;
 try { sdo = localStorage.getItem("sdo"); } catch (e) {}
 
-// Di GitHub Pages tidak ada server: /api/* dijalankan di browser (browser.js: Pyodide + Supabase).
-const BROWSER = location.hostname.endsWith("github.io") || new URLSearchParams(location.search).has("browser");
+// Versi online (Cloudflare): /api/* dijalankan di browser (browser.js: Pyodide + Worker /srv).
+// Versi lokal (python3 gui.py di localhost) memakai server Python.
+const BROWSER = !["localhost", "127.0.0.1"].includes(location.hostname) || new URLSearchParams(location.search).has("browser");
 let modBrowser = null;
 async function api(path, body) {
   if (BROWSER) {

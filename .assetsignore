@@ -1,0 +1,23 @@
+# Hanya file aplikasi yang dipublikasikan; data & rahasia tetap privat
+.git
+.github
+.claude
+.wrangler
+.assetsignore
+.gitignore
+.nojekyll
+node_modules
+worker
+wrangler.toml
+template
+ttd
+output
+preview
+sdo.json
+master_copart.json
+__pycache__
+*.command
+gui.py
+requirements.txt
+README.md
+.dev.vars

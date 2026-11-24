@@ -1,0 +1,13 @@
+# Cloudflare Worker: aplikasi + API Laporan Bulanan (deploy: npx wrangler deploy)
+name = "laporan-bulanan-tq"
+main = "worker/worker.js"
+compatibility_date = "2026-11-01"
+
+[assets]
+directory = "."
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "laporan-bulanan-tq"
+database_id = "2f460481-0e8e-4784-af7a-d403a558ab44"

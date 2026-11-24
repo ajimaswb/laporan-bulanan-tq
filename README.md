@@ -1,22 +1,26 @@
 # Laporan Bulanan FM-SDD-008 otomatis
 
 Membuat file `FM-SDD-008 Laporan Bulanan <SDO> (26 ... - 25 ...).xlsx` dari spreadsheet kehadiran (Google Sheets).
-Bisa dipakai **online** di GitHub Pages (semua SDO, login per SDO, data di Supabase) atau **lokal** di komputer sendiri.
+Bisa dipakai **online** di Cloudflare (semua SDO, login per SDO, data di D1) atau **lokal** di komputer sendiri.
 
-## Versi online (GitHub Pages)
-Alamat: **https://ajimaswb.github.io/laporan-bulanan-tq/**
+## Versi online (Cloudflare)
+Alamat: **https://laporan-bulanan-tq.aporan--ulanan.workers.dev/**
+(alamat lama GitHub Pages otomatis dialihkan ke sini)
 
-- Tidak ada server: kode Python (`laporan_bulanan.py`, `inti.py`, `web.py`) berjalan **di browser** lewat
-  [Pyodide](https://pyodide.org). Pertama kali dibuka butuh ±10–20 detik untuk memuat Python; berikutnya lebih cepat.
-- `browser.js` menggantikan server: login, data, dan unduhan langsung ke Supabase (project `laporan-bulanan-tq`).
-- Spreadsheet kehadiran diambil lewat Supabase Edge Function `kehadiran` (Google memblokir unduhan langsung dari browser).
-- Login: **kode SDO + password**. Admin (AJM) membuat akun SDO lain di tab **Data SDO** → *Buat akun* / *Reset password*.
+- `worker/worker.js` (Cloudflare Worker): login SDO, data di D1 `laporan-bulanan-tq`, spreadsheet kehadiran.
+  File aplikasi (index.html, browser.js, *.py) dilayani dari folder ini; `.assetsignore` menjaga data & rahasia tidak ikut.
+- Kode Python laporan berjalan **di browser** lewat Pyodide (pertama kali ±10–20 detik).
+- Login: **kode SDO + password**. Admin (AJM) membuat/reset akun SDO di menu **Data SDO**.
 - SDO biasa hanya melihat & mengubah laporan, nama, dan tanda tangannya sendiri; master copart hanya bisa dibaca.
-- Admin mengelola master copart, daftar SDO, dan **template laporan** (upload sekali di tab Data SDO).
-- Pertama kali setelah deploy: layar **Siapkan admin pertama** → buat password admin (AJM) → upload template & tanda tangan.
-- `.github/workflows/keep-alive.yml` mem-ping Supabase tiap hari supaya project gratis tidak berhenti.
+- Tidak ada pause otomatis seperti Supabase gratis.
 
-Hak akses dijaga Row Level Security di database. Data, tanda tangan, dan template **tidak** ada di repo ini.
+### Deploy
+```bash
+npx wrangler@4 login        # sekali saja
+npx wrangler@4 deploy
+```
+Secret `SESSION_SECRET` sudah dipasang di Worker (`npx wrangler@4 secret put SESSION_SECRET` untuk mengganti).
+Uji lokal: `npx wrangler@4 dev --local` lalu buka `http://localhost:8787/?browser=1` (butuh `.dev.vars`).
 
 ## Versi lokal
 Klik dua kali `Laporan Bulanan.command` (atau `python3 gui.py`). Browser terbuka di `http://127.0.0.1:8765`.
@@ -43,9 +47,10 @@ python3 laporan_bulanan.py --sdo JNT          # SDO lain
 | `laporan_bulanan.py` | generator laporan (juga CLI) |
 | `inti.py` | logika GUI bersama (lokal & browser) |
 | `web.py` | jembatan Python ↔ JavaScript untuk versi browser |
-| `browser.js` | versi browser: Pyodide + login + Supabase |
+| `browser.js` | versi online: Pyodide + login + Worker |
 | `gui.py` | server versi lokal |
-| `penyimpanan.py` | penyimpanan file lokal / Supabase |
+| `penyimpanan.py` | penyimpanan file lokal |
+| `worker/worker.js` | server Cloudflare (login, D1, spreadsheet) |
 | `index.html` | tampilan (dipakai versi lokal & online) |
 | `config.json` | aturan global (absen, kata kegiatan, kota, cutoff, alamat Supabase) |
 
